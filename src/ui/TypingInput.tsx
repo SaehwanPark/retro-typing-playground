@@ -30,6 +30,9 @@ export function TypingInput({ language, target, onInput, onSubmit, onSpaceSubmit
   const field = useFocus<HTMLInputElement>();
   const composing = useRef(false);
   const spacePressedDuringComposition = useRef(false);
+  const spaceInputDuringComposition = useRef(false);
+  const compositionJustEnded = useRef(false);
+  // A trailing IME Space event can arrive after keyup, so key release must not clear this guard.
   const pendingCompositionSpace = useRef<{ input: string; caret: number } | null>(null);
   const confirmed = useRef("");
 
@@ -37,6 +40,39 @@ export function TypingInput({ language, target, onInput, onSubmit, onSpaceSubmit
     if (confirmed.current === value) return;
     confirmed.current = value;
     onInput(value, performance.now());
+  }
+
+  function applyCompositionSpace(input: HTMLInputElement, at: number, spaceAlreadyInserted = false) {
+    const value = input.value;
+    const start = input.selectionStart ?? value.length;
+    const end = input.selectionEnd ?? value.length;
+
+    if (spaceAlreadyInserted && start === end && start > 0 && value[start - 1] === " ") {
+      const withoutSpace = `${value.slice(0, start - 1)}${value.slice(start)}`;
+      if (hasReachedEnd(target, withoutSpace)) {
+        confirmed.current = withoutSpace;
+        pendingCompositionSpace.current = { input: value, caret: start };
+        onSpaceSubmit(withoutSpace, at);
+        return;
+      }
+
+      pendingCompositionSpace.current = { input: value, caret: start };
+      commit(value);
+      return;
+    }
+
+    if (hasReachedEnd(target, value)) {
+      confirmed.current = value;
+      pendingCompositionSpace.current = { input: value, caret: start };
+      onSpaceSubmit(value, at);
+      return;
+    }
+
+    const insertion = insertSpaceAtSelection(value, start, end);
+    input.value = insertion.input;
+    input.setSelectionRange(insertion.caret, insertion.caret);
+    pendingCompositionSpace.current = { input: insertion.input, caret: insertion.caret };
+    commit(insertion.input);
   }
 
   function handleKey(event: KeyboardEvent<HTMLInputElement>) {
@@ -47,16 +83,30 @@ export function TypingInput({ language, target, onInput, onSubmit, onSpaceSubmit
       event.preventDefault();
       return;
     }
+    pendingCompositionSpace.current = null;
     // Some browsers report isComposing=false on the key that ends an IME edit.
     if (composing.current || native.isComposing || native.keyCode === 229) {
       if (event.key === "Enter" || event.key === "Escape" || code === "Enter" ||
           code === "NumpadEnter" || spaceKey) {
         imeShortcuts.add(code);
       }
-      if (spaceKey) spacePressedDuringComposition.current = true;
+      if (spaceKey) {
+        if (!spacePressedDuringComposition.current) {
+          spaceInputDuringComposition.current = false;
+        }
+        spacePressedDuringComposition.current = true;
+      }
       return;
     }
     if (event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    if (spaceKey && compositionJustEnded.current) {
+      event.preventDefault();
+      compositionJustEnded.current = false;
+      imeShortcuts.add(code);
+      applyCompositionSpace(event.currentTarget, performance.now());
+      return;
+    }
+    compositionJustEnded.current = false;
     if (event.key === "Enter") {
       event.preventDefault();
       onSubmit();
@@ -82,52 +132,69 @@ export function TypingInput({ language, target, onInput, onSubmit, onSpaceSubmit
       autoCorrect="off"
       spellCheck={false}
       aria-describedby="typing-target typing-hint"
-      onCompositionStart={() => { composing.current = true; }}
+      onCompositionStart={() => {
+        composing.current = true;
+        compositionJustEnded.current = false;
+        if (!spacePressedDuringComposition.current) {
+          spaceInputDuringComposition.current = false;
+        }
+      }}
       onCompositionEnd={(event) => {
         composing.current = false;
         const value = event.currentTarget.value;
         if (!spacePressedDuringComposition.current) {
+          compositionJustEnded.current = true;
           commit(value);
           return;
         }
 
         spacePressedDuringComposition.current = false;
-        const at = performance.now();
-        if (hasReachedEnd(target, value)) {
-          confirmed.current = value;
-          pendingCompositionSpace.current = {
-            input: value,
-            caret: event.currentTarget.selectionStart ?? value.length,
-          };
-          onSpaceSubmit(value, at);
-          return;
-        }
-
-        const insertion = insertSpaceAtSelection(
-          value,
-          event.currentTarget.selectionStart ?? value.length,
-          event.currentTarget.selectionEnd ?? value.length,
-        );
-        event.currentTarget.value = insertion.input;
-        event.currentTarget.setSelectionRange(insertion.caret, insertion.caret);
-        pendingCompositionSpace.current = { input: insertion.input, caret: insertion.caret };
-        commit(insertion.input);
+        compositionJustEnded.current = false;
+        const spaceAlreadyInserted = spaceInputDuringComposition.current;
+        spaceInputDuringComposition.current = false;
+        applyCompositionSpace(event.currentTarget, performance.now(), spaceAlreadyInserted);
       }}
       onBeforeInput={(event) => {
         const native = event.nativeEvent as InputEvent;
-        const pending = pendingCompositionSpace.current;
-        if (pending && native.inputType === "insertText" && native.data === " ") {
-          // Chrome may deliver the ending Space as text after compositionend.
+        const isSpaceText = native.data === " ";
+        if (!isSpaceText) return;
+
+        // IMEs can deliver Space's text event on either side of compositionend.
+        if (composing.current || native.isComposing) {
           event.preventDefault();
-          pendingCompositionSpace.current = null;
+          if (!spacePressedDuringComposition.current) {
+            spaceInputDuringComposition.current = false;
+          }
+          spacePressedDuringComposition.current = true;
+          imeShortcuts.add("Space");
+          return;
+        }
+
+        const pending = pendingCompositionSpace.current;
+        if (pending) {
+          event.preventDefault();
+          return;
+        }
+
+        if (compositionJustEnded.current) {
+          event.preventDefault();
+          compositionJustEnded.current = false;
+          imeShortcuts.add("Space");
+          applyCompositionSpace(event.currentTarget, performance.now());
         }
       }}
       onInput={(event) => {
         const native = event.nativeEvent as InputEvent;
-        if (composing.current || native.isComposing) return;
+        const isSpaceText = native.data === " ";
+        if (composing.current || native.isComposing) {
+          if (spacePressedDuringComposition.current && isSpaceText) {
+            spaceInputDuringComposition.current = true;
+          }
+          return;
+        }
 
         const pending = pendingCompositionSpace.current;
-        if (pending && native.inputType === "insertText" && native.data === " ") {
+        if (pending && isSpaceText) {
           const duplicate = insertSpaceAtSelection(pending.input, pending.caret, pending.caret).input;
           if (event.currentTarget.value === duplicate) {
             event.currentTarget.value = pending.input;
@@ -136,6 +203,14 @@ export function TypingInput({ language, target, onInput, onSubmit, onSpaceSubmit
             return;
           }
         }
+
+        if (compositionJustEnded.current && isSpaceText) {
+          compositionJustEnded.current = false;
+          imeShortcuts.add("Space");
+          applyCompositionSpace(event.currentTarget, performance.now(), true);
+          return;
+        }
+
         pendingCompositionSpace.current = null;
         commit(event.currentTarget.value);
       }}
@@ -143,10 +218,11 @@ export function TypingInput({ language, target, onInput, onSubmit, onSpaceSubmit
       onKeyUp={(event) => {
         const code = physicalKeyCode(event.key, event.code);
         imeShortcuts.delete(code);
-        if (code === "Space") pendingCompositionSpace.current = null;
       }}
       onBlur={() => {
         spacePressedDuringComposition.current = false;
+        spaceInputDuringComposition.current = false;
+        compositionJustEnded.current = false;
         pendingCompositionSpace.current = null;
       }}
       onPaste={(event) => {
