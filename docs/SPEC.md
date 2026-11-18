@@ -34,6 +34,7 @@
   - 검증 도구의 한계나 재현되지 않은 문제만으로 개발을 멈추지 않는다. 확인하지 못한 항목은 증거 공백으로 기록하며, Windows 11 + Chrome에서 설치·빌드·실행 또는 기본 한글 연습을 막는 치명적 결함이 재현된 경우에만 해결을 우선한다.
   - 2026-11-18 Windows 11 호스트에서 Node 26.13.0 / npm 12.2.0으로 임시 작업 복사본의 엄격한 `npm ci`와 `npm run build`를 통과했다. `node serve.mjs` 실행 후 PowerShell 요청에서 앱 HTML의 HTTP 200 응답을 받았다. 이 결과는 Windows 설치·빌드·서버 실행을 확인하며 Chrome UI와 실제 IME 확인을 대신하지 않는다.
   - 2026-11-18 Chrome에서 로컬 앱을 열고 한글 단문을 입력해 100% 정확도를 확인했다. Enter 제출 후 다음 문장과 직전 점수가 표시되고, Esc로 메뉴에 돌아왔다. 이 입력은 브라우저 제어 도구의 텍스트 입력으로 수행했으며 실제 Windows IME 조합 확인으로 간주하지 않는다.
+  - Playwright에는 `compositionstart`·조합 중 입력·Enter·`compositionend` 순서를 합성해 앱의 이벤트 처리를 확인하는 테스트가 있다. 이 테스트는 운영체제 IME를 구동하지 않으므로 Windows IME 검증을 대신하지 않는다.
   - Windows Chrome 확장 입력에서 `Alt_R` 뒤 `d`는 ASCII `d`로 들어왔고, Esc는 시작 메뉴로 돌아왔다. 이 확장 키 입력도 실제 OS IME 조합을 증명하지 않는다.
   - 실제 IME 확인을 위해 네이티브 Chrome 창을 다시 선택해 제어하려 했지만, 컴퓨터 사용 도구가 `failed to activate captured window`를 반환했다. 새 창 목록으로 한 차례 재선택한 뒤에도 같았다. 이는 도구 제어 실패이며 앱의 Chrome 동작 실패를 뜻하지 않는다.
   - Chromium, Firefox, WebKit의 배포물 자동 검증을 마쳤다. Ubuntu Firefox와 실제 IBus 한글 두벌식에서 조합 수정, 두 번의 Enter, Esc 복귀와 브라우저 200% 확대를 확인했다.
