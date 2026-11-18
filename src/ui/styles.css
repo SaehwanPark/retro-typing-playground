@@ -12,7 +12,7 @@
 
 * { box-sizing: border-box; }
 body { margin: 0; min-block-size: 100vh; }
-button, input { font: inherit; }
+button, input, textarea { font: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--amber); outline-offset: 4px; }
 
@@ -132,6 +132,23 @@ h1 { margin: 0; font-size: clamp(1.55rem, 4vw, 2.55rem); line-height: 1.25; }
   caret-color: var(--amber);
 }
 .entry input:focus { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+.free-practice-label { display: block; margin: 1.25rem 0 .5rem; color: var(--quiet); }
+.free-practice-editor {
+  display: block;
+  width: 100%;
+  min-height: min(56vh, 34rem);
+  padding: .8rem;
+  border: 1px solid #75644a;
+  border-radius: .2rem;
+  background: #111613;
+  color: inherit;
+  caret-color: var(--amber);
+  font-size: var(--typing-size);
+  line-height: 1.65;
+  resize: vertical;
+}
+.free-practice-editor:focus { outline: 2px solid var(--amber); outline-offset: 2px; }
 
 .keys { margin: 1rem 0; color: var(--quiet); font-size: .85rem; }
 kbd {

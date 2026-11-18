@@ -1,4 +1,10 @@
-import { challengeEntry, completionTime, historyEntry, usePracticeState } from "../app/usePractice";
+import {
+  challengeEntry,
+  completionTime,
+  freePracticeEntry,
+  historyEntry,
+  usePracticeState,
+} from "../app/usePractice";
 import { useHistory } from "../app/useHistory";
 import { useTextSize } from "../app/useTextSize";
 import { activities } from "../content/lessons";
@@ -10,6 +16,7 @@ import { ArticleView } from "./ArticleView";
 import { ChallengeView } from "./ChallengeView";
 import { DisplaySettings } from "./DisplaySettings";
 import { HistoryView } from "./HistoryView";
+import { FreePracticeView } from "./FreePracticeView";
 import { PositionView } from "./PositionView";
 import { PracticeView } from "./PracticeView";
 import { ResultView } from "./ResultView";
@@ -18,6 +25,7 @@ const mainActivities = [
   ...activities,
   ...(articles.length ? [{ ...libraryEntry, kind: "library" as const }] : []),
   challengeEntry,
+  freePracticeEntry,
   historyEntry,
 ];
 const articleList = articles.map((article) => ({
@@ -48,6 +56,7 @@ export function App() {
           onStart={(activity) => {
             if (activity.kind === "library") dispatch({ type: "open-library" });
             else if (activity.kind === "challenge") dispatch({ type: "open-challenge" });
+            else if (activity.kind === "free-practice") dispatch({ type: "open-free-practice" });
             else if (activity.kind === "history") dispatch({ type: "open-history" });
             else dispatch({ type: "start", activity });
           }}
@@ -55,6 +64,7 @@ export function App() {
       )}
 
       {state.screen === "challenge" && <ChallengeView onBack={back} />}
+      {state.screen === "free-practice" && <FreePracticeView onBack={back} />}
 
       {state.screen === "history" && (
         <HistoryView records={history.records} onClear={history.reset} onBack={back} />
