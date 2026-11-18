@@ -3,6 +3,7 @@ import { scoreArticle } from "../domain/articlePractice";
 import type { ArticleSession } from "../domain/articlePractice";
 import { PracticeView } from "./PracticeView";
 import type { InterfaceText } from "../content/interfaceText";
+import type { TypingSpeedUnit } from "../domain/typingSpeed";
 
 type ArticleViewProps = {
   activity: ArticleActivity;
@@ -11,9 +12,10 @@ type ArticleViewProps = {
   onSubmit: (at: number) => void;
   onBack: () => void;
   copy: InterfaceText;
+  speedUnit: TypingSpeedUnit;
 };
 
-export function ArticleView({ activity, session, onInput, onSubmit, onBack, copy }: ArticleViewProps) {
+export function ArticleView({ activity, session, onInput, onSubmit, onBack, copy, speedUnit }: ArticleViewProps) {
   const index = session.lineIndex;
   const target = activity.lines[index];
   if (!target) return null;
@@ -29,6 +31,7 @@ export function ArticleView({ activity, session, onInput, onSubmit, onBack, copy
       session={session.line}
       startedAt={session.startedAt}
       scoreAt={(now) => scoreArticle(target, session, now)}
+      speedUnit={speedUnit}
       backLabel={copy.chooseArticle}
       copy={copy}
       context={

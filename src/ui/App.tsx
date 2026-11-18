@@ -15,7 +15,9 @@ import { useColorTheme } from "../app/useColorTheme";
 import { usePracticeFont } from "../app/usePracticeFont";
 import { useScreenCapture } from "../app/useScreenCapture";
 import { activities } from "../content/lessons";
+import type { Activity, Language } from "../content/lessons";
 import { articles, libraryEntry } from "../content/articles";
+import type { ArticleActivity } from "../content/articles";
 import { interfaceText } from "../content/interfaceText";
 import { splitCharacters, hasReachedEnd } from "../domain/typing";
 import type { PositionKey } from "../domain/positions";
@@ -44,6 +46,12 @@ function shouldPlayForCurrentSubmission(state: ReturnType<typeof usePracticeStat
 
 function contentState(state: PracticeState) {
   return state.screen === "settings" ? state.returnState : state;
+}
+
+function activityLanguage(activity: Activity | ArticleActivity): Language {
+  if (activity.kind === "article") return activity.language;
+  if (activity.kind === "position") return "ko";
+  return activity.lessons[0]?.language ?? "ko";
 }
 
 function restoreContentFocus(root: HTMLDivElement | null, state: PracticeState): void {
@@ -76,7 +84,7 @@ export function App() {
   const { state, pending, latest, dispatch, acknowledge } = practice;
   const currentScreen = contentState(state);
   const appPreferences = useAppPreferences();
-  const { interfaceLanguage, practiceLanguage, completionSound } = appPreferences.preferences;
+  const { interfaceLanguage, practiceLanguage, completionSound, typingSpeedUnits } = appPreferences.preferences;
   const copy = interfaceText(interfaceLanguage);
   const history = useHistory(pending, acknowledge);
   const textSize = useTextSize();
@@ -198,7 +206,14 @@ export function App() {
       {currentScreen.screen === "free-practice" && <FreePracticeView onBack={back} copy={copy} />}
 
       {currentScreen.screen === "history" && (
-        <HistoryView records={history.records} onClear={history.reset} onBack={back} copy={copy} interfaceLanguage={interfaceLanguage} />
+        <HistoryView
+          records={history.records}
+          onClear={history.reset}
+          onBack={back}
+          copy={copy}
+          interfaceLanguage={interfaceLanguage}
+          typingSpeedUnits={typingSpeedUnits}
+        />
       )}
 
       {currentScreen.screen === "library" && (
@@ -220,6 +235,7 @@ export function App() {
           language={currentScreen.lesson.language}
           session={currentScreen.session}
           previous={currentScreen.previous}
+          speedUnit={typingSpeedUnits[currentScreen.lesson.language]}
           copy={copy}
           onInput={onInput}
           onSubmit={onSubmit}
@@ -229,7 +245,15 @@ export function App() {
       )}
 
       {currentScreen.screen === "article" && (
-        <ArticleView activity={currentScreen.activity} session={currentScreen.session} onInput={onInput} onSubmit={onSubmit} onBack={back} copy={copy} />
+        <ArticleView
+          activity={currentScreen.activity}
+          session={currentScreen.session}
+          onInput={onInput}
+          onSubmit={onSubmit}
+          onBack={back}
+          copy={copy}
+          speedUnit={typingSpeedUnits[currentScreen.activity.language]}
+        />
       )}
 
       {currentScreen.screen === "positions" && (
@@ -247,6 +271,7 @@ export function App() {
           title={currentScreen.activity.kind === "sentence" ? copy.previousSentence : copy.activityLabel(currentScreen.activity.id, currentScreen.activity.label)}
           score={currentScreen.score}
           showSpeed={currentScreen.activity.kind !== "position"}
+          speedUnit={typingSpeedUnits[activityLanguage(currentScreen.activity)]}
           comparison={latest ? comparableRecord(latest, history.records)?.score : undefined}
           backLabel={currentScreen.activity.kind === "article" ? copy.chooseArticle : copy.menu}
           onRetry={() => dispatch({ type: "retry" })}
@@ -264,6 +289,12 @@ export function App() {
           practiceLanguage={practiceLanguage}
           onInterfaceLanguageChange={(language) => { void appPreferences.change({ interfaceLanguage: language }); }}
           onPracticeLanguageChange={(language) => { void appPreferences.change({ practiceLanguage: language }); }}
+          typingSpeedUnits={typingSpeedUnits}
+          onTypingSpeedUnitChange={(language, unit) => {
+            void appPreferences.change({
+              typingSpeedUnits: { ...appPreferences.preferences.typingSpeedUnits, [language]: unit },
+            });
+          }}
           size={textSize.size}
           onSizeChange={textSize.change}
           theme={colorTheme.theme}

@@ -4,6 +4,8 @@ import type { PracticeRecord, RecordedMode } from "../domain/history";
 import { useFocus } from "./useFocus";
 import type { InterfaceText } from "../content/interfaceText";
 import type { Language } from "../content/lessons";
+import { toDisplayedTypingSpeed } from "../domain/typingSpeed";
+import type { TypingSpeedUnits } from "../domain/typingSpeed";
 
 type HistoryViewProps = {
   records: readonly PracticeRecord[];
@@ -11,9 +13,10 @@ type HistoryViewProps = {
   onBack: () => void;
   copy: InterfaceText;
   interfaceLanguage: Language;
+  typingSpeedUnits: TypingSpeedUnits;
 };
 
-export function HistoryView({ records, onClear, onBack, copy, interfaceLanguage }: HistoryViewProps) {
+export function HistoryView({ records, onClear, onBack, copy, interfaceLanguage, typingSpeedUnits }: HistoryViewProps) {
   const title = useFocus<HTMLHeadingElement>();
   const dateFormat = new Intl.DateTimeFormat(interfaceLanguage === "ko" ? "ko" : "en", {
     dateStyle: "medium", timeStyle: "short",
@@ -62,16 +65,20 @@ export function HistoryView({ records, onClear, onBack, copy, interfaceLanguage 
       )}
       {visible.length === 0 ? <p className="lede">{copy.noRecords}</p> : (
         <ul className="history-list">
-          {visible.map(({ id, mode, language, completedAt, score }) => (
-            <li key={id}>
-              <div><strong>{copy.modeLabel(mode)}</strong> · {language === "ko" ? copy.korean : copy.english}</div>
-              <span>{dateFormat.format(completedAt)}</span>
-              <div>
-                {score.accuracy === null ? "—" : copy.accuracyValue(Math.round(score.accuracy))}
-                {score.charactersPerMinute !== null && ` · ${copy.charactersPerMinute(Math.round(score.charactersPerMinute))}`}
-              </div>
-            </li>
-          ))}
+          {visible.map(({ id, mode, language, completedAt, score }) => {
+            const speedUnit = typingSpeedUnits[language];
+            const speed = toDisplayedTypingSpeed(score.charactersPerMinute, speedUnit);
+            return (
+              <li key={id}>
+                <div><strong>{copy.modeLabel(mode)}</strong> · {language === "ko" ? copy.korean : copy.english}</div>
+                <span>{dateFormat.format(completedAt)}</span>
+                <div>
+                  {score.accuracy === null ? "—" : copy.accuracyValue(Math.round(score.accuracy))}
+                  {speed !== null && ` · ${copy.speedValue(Math.round(speed), speedUnit)}`}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>

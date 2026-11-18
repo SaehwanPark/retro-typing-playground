@@ -13,6 +13,8 @@ import type { ColorTheme, PracticeFont, TextSize } from "../storage/settingsStor
 import type { AppPreferences } from "../storage/appPreferences";
 import type { InterfaceText } from "../content/interfaceText";
 import type { Language } from "../content/lessons";
+import { isTypingSpeedUnit } from "../domain/typingSpeed";
+import type { TypingSpeedUnit, TypingSpeedUnits } from "../domain/typingSpeed";
 import { useFocus } from "./useFocus";
 
 type DisplaySettingsProps = {
@@ -20,6 +22,8 @@ type DisplaySettingsProps = {
   practiceLanguage: Language;
   onInterfaceLanguageChange: (language: Language) => void;
   onPracticeLanguageChange: (language: Language) => void;
+  typingSpeedUnits: TypingSpeedUnits;
+  onTypingSpeedUnitChange: (language: Language, unit: TypingSpeedUnit) => void;
   size: TextSize;
   onSizeChange: (size: TextSize, reset?: boolean) => Promise<void>;
   theme: ColorTheme;
@@ -54,6 +58,8 @@ export function DisplaySettings({
   practiceLanguage,
   onInterfaceLanguageChange,
   onPracticeLanguageChange,
+  typingSpeedUnits,
+  onTypingSpeedUnitChange,
   size,
   onSizeChange,
   theme,
@@ -104,6 +110,25 @@ export function DisplaySettings({
             <option value="en">{copy.english}</option>
           </select>
           {practiceLanguageLocked && <small>{copy.practiceLanguageAfterMenu}</small>}
+        </label>
+        <label>{copy.koreanSpeedUnit}
+          <select value={typingSpeedUnits.ko} onChange={(event) => {
+            const value = event.currentTarget.value;
+            if (isTypingSpeedUnit(value)) onTypingSpeedUnitChange("ko", value);
+          }}>
+            <option value="cpm">{copy.speedUnitCpm}</option>
+            <option value="wpm">{copy.speedUnitWpm}</option>
+          </select>
+        </label>
+        <label>{copy.englishSpeedUnit}
+          <select value={typingSpeedUnits.en} onChange={(event) => {
+            const value = event.currentTarget.value;
+            if (isTypingSpeedUnit(value)) onTypingSpeedUnitChange("en", value);
+          }}>
+            <option value="cpm">{copy.speedUnitCpm}</option>
+            <option value="wpm">{copy.speedUnitWpm}</option>
+          </select>
+          <small>{copy.speedUnitHelp}</small>
         </label>
         <label>{copy.practiceSize}
           <select value={size} onChange={(event) => {
