@@ -14,7 +14,7 @@ test("challenge can submit, stop, retry, and end automatically", async ({ page }
   await input.press("Enter");
   await expect(page.getByRole("status")).toContainText("같은지 확인");
   await input.press("Backspace");
-  await input.press("Enter");
+  await input.press("Space");
   await expect(input).toHaveValue("");
   await expect(page.locator("#typing-target")).toHaveText("새벽");
 

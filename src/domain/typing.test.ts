@@ -3,6 +3,7 @@ import {
   calculateTypingScore,
   createPracticeSession,
   hasReachedEnd,
+  insertSpaceAtSelection,
   normalizeInput,
   reducePracticeSession,
   splitCharacters,
@@ -91,6 +92,17 @@ describe("practice sessions", () => {
   it("does not finish before all target graphemes are typed", () => {
     expect(hasReachedEnd("한글!", "한글")).toBe(false);
     expect(hasReachedEnd("한글!", "한글!")).toBe(true);
+  });
+
+  it("inserts one space at the selection and returns the next caret position", () => {
+    expect(insertSpaceAtSelection("학교에가다", 3, 3)).toEqual({
+      input: "학교에 가다",
+      caret: 4,
+    });
+    expect(insertSpaceAtSelection("abc", 1, 2)).toEqual({
+      input: "a c",
+      caret: 2,
+    });
   });
 
   it("keeps a completed session unchanged", () => {

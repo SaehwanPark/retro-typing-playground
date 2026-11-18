@@ -107,3 +107,14 @@ export function createTypingScore(
 export function hasReachedEnd(target: string, input: string): boolean {
   return splitCharacters(input).length >= splitCharacters(target).length;
 }
+
+export function insertSpaceAtSelection(
+  input: string,
+  selectionStart: number,
+  selectionEnd: number,
+): { input: string; caret: number } {
+  const start = Math.max(0, Math.min(input.length, selectionStart));
+  const end = Math.max(start, Math.min(input.length, selectionEnd));
+  const nextInput = `${input.slice(0, start)} ${input.slice(end)}`;
+  return { input: nextInput, caret: start + 1 };
+}

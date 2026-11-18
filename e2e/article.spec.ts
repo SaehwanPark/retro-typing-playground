@@ -16,7 +16,7 @@ test("article lines advance with focus and return to the selected article", asyn
     await expect(input).toHaveValue("");
     await expect(page.getByText(`${index + 1} / ${article.lines.length}`, { exact: false })).toBeVisible();
     await input.fill(line);
-    await input.press("Enter");
+    await input.press("Space");
   }
   await expect(page.getByRole("heading", { name: "연습 완료" })).toBeFocused();
   await expect(page.getByText("100%")).toBeVisible();

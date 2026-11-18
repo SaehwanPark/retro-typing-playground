@@ -17,25 +17,23 @@ type PracticeViewProps = {
   context?: ReactNode;
   startedAt?: number | null;
   speedUnit: TypingSpeedUnit;
-  submitOnSpace?: boolean;
   scoreAt?: (now: number) => TypingScore;
   backLabel?: string;
   copy: InterfaceText;
   onInput: (input: string, at: number) => void;
-  onSubmit: (at: number) => void;
+  onSubmit: (at: number, input?: string) => void;
   onFinish?: () => void;
   onBack: () => void;
 };
 
 export function PracticeView({
-  title, language, prompt, session, previous, context, startedAt = session.startedAt, speedUnit, submitOnSpace = false,
+  title, language, prompt, session, previous, context, startedAt = session.startedAt, speedUnit,
   scoreAt, backLabel, onInput, onSubmit, onFinish, onBack, copy,
 }: PracticeViewProps) {
   const [now, setNow] = useState(() => performance.now());
   const [notice, setNotice] = useState("");
   const target = splitCharacters(prompt);
   const typed = splitCharacters(session.input);
-  const remaining = target.length - typed.length;
   const score = scoreAt ? scoreAt(now) : calculateTypingScore(prompt, session, now);
 
   useEffect(() => {
@@ -44,12 +42,14 @@ export function PracticeView({
     return () => window.clearInterval(timer);
   }, [startedAt]);
 
-  function submit() {
-    if (remaining > 0) {
-      setNotice(copy.remainingCharacters(remaining));
+  function submit(input?: string, at = performance.now()) {
+    const inputToSubmit = input ?? session.input;
+    const remainingAtSubmit = target.length - splitCharacters(inputToSubmit).length;
+    if (remainingAtSubmit > 0) {
+      setNotice(copy.remainingCharacters(remainingAtSubmit));
       return;
     }
-    onSubmit(performance.now());
+    onSubmit(at, input);
   }
 
   return (
@@ -74,13 +74,14 @@ export function PracticeView({
         <label htmlFor="typing-input">{copy.followAlong}</label>
         <TypingInput
           language={language}
-          submitOnSpace={submitOnSpace && language === "ko" && remaining <= 0}
+          target={prompt}
           onInput={(input, at) => {
             setNow(at);
             setNotice("");
             onInput(input, at);
           }}
           onSubmit={submit}
+          onSpaceSubmit={submit}
           onBack={onBack}
           onBlockedEdit={() => setNotice(copy.blockedPracticeInput)}
         />
@@ -88,10 +89,10 @@ export function PracticeView({
       <div className="practice-actions">
         <p className="keys" id="typing-hint">
           <kbd>Enter</kbd> {copy.submit}
-          {submitOnSpace && language === "ko" && <>{" · "}<kbd>Space</kbd> {copy.spaceSubmitHint}</>}
+          {" · "}<kbd>Space</kbd> {copy.spaceSubmitHint}
           {" "}<kbd>Esc</kbd> {backLabel ?? copy.menu}
         </p>
-        <button type="button" className="button" onClick={submit}>{copy.submit}</button>
+        <button type="button" className="button" onClick={() => submit()}>{copy.submit}</button>
       </div>
       <p className="notice" role="status">{notice}</p>
       <Scoreboard label={copy.currentScore} score={score} speedUnit={speedUnit} copy={copy} />

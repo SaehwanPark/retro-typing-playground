@@ -35,11 +35,11 @@ import { ResultView } from "./ResultView";
 import { ScreenCaptureControl } from "./ScreenCaptureControl";
 import { playCompletionTone } from "./completionSound";
 
-function shouldPlayForCurrentSubmission(state: ReturnType<typeof usePracticeState>["state"]): boolean {
-  if (state.screen === "practice") return hasReachedEnd(state.lesson.text, state.session.input);
+function shouldPlayForCurrentSubmission(state: ReturnType<typeof usePracticeState>["state"], input?: string): boolean {
+  if (state.screen === "practice") return hasReachedEnd(state.lesson.text, input ?? state.session.input);
   if (state.screen === "article") {
     const target = state.activity.lines[state.session.lineIndex];
-    return target !== undefined && hasReachedEnd(target, state.session.line.input);
+    return target !== undefined && hasReachedEnd(target, input ?? state.session.line.input);
   }
   return false;
 }
@@ -103,9 +103,9 @@ export function App() {
   };
   const closeSettings = () => dispatch({ type: "close-settings" });
   const onInput = (input: string, at: number) => dispatch({ type: "input-changed", input, at });
-  const onSubmit = (at: number) => {
-    if (completionSound && shouldPlayForCurrentSubmission(currentScreen)) playCompletionTone();
-    dispatch({ type: "submit", ...completionTime(at) });
+  const onSubmit = (at: number, input?: string) => {
+    if (completionSound && shouldPlayForCurrentSubmission(currentScreen, input)) playCompletionTone();
+    dispatch({ type: "submit", ...(input === undefined ? {} : { input }), ...completionTime(at) });
   };
   const onPositionKey = (key: PositionKey, at: number) => {
     if (completionSound && currentScreen.screen === "positions" &&
@@ -236,7 +236,6 @@ export function App() {
           session={currentScreen.session}
           previous={currentScreen.previous}
           speedUnit={typingSpeedUnits[currentScreen.lesson.language]}
-          submitOnSpace={currentScreen.activity.kind === "sentence" && currentScreen.lesson.language === "ko"}
           copy={copy}
           onInput={onInput}
           onSubmit={onSubmit}
