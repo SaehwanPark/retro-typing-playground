@@ -8,7 +8,7 @@
 
 `v0.0.6`에서 두벌식 자리 연습, 한글·영문 낱말 및 연속 단문, 한글 장문, 30초 낱말 도전을 사용할 수 있습니다. 같은 브라우저에서 최근 100회 결과를 관리하고 화면 위의 표시 설정으로 연습 글자 크기를 정할 수 있습니다.
 
-Fedora WSL의 Chromium과 Firefox에서 자동 검증을 수행했고 Windows 11 Chrome에서 첫 한국어 단문 흐름을 확인했습니다. 실제 OS별 한글 입력기 지원 확인은 진행 중입니다. [지원 확인 PR](https://github.com/SaehwanPark/retro-typing-playground/pull/6)
+Chromium, Firefox, WebKit에서 배포물 자동 검증을 통과했습니다. Ubuntu Firefox와 IBus 한글 두벌식에서 조합과 제출을 확인했고 Windows 11 Edge에서는 배포물 메뉴와 연습 진입을 확인했습니다. Microsoft 한국어 IME와 macOS Safari의 실제 조합 검증이 남아 있습니다. [지원 확인 PR](https://github.com/SaehwanPark/retro-typing-playground/pull/6)
 
 ## 실행하기
 

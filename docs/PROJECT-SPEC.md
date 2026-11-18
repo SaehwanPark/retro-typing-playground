@@ -78,7 +78,7 @@ Windows 11, macOS, Linux에서 동일한 정적 웹앱을 실행한다. 로컬 �
 
 - `Lesson`은 모드 식별자로 구분한다. 자리 연습은 물리 키 목록, 단문과 낱말은 하나의 제시문, 장문은 짧은 줄 목록을 담는다. 빈 목록과 빈 제시문은 콘텐츠를 읽을 때 거른다. 자리 연습은 대상 위치와 `KeyboardEvent.code`를 비교한다. 입력된 글자 대신 키 위치를 배우기 위한 모드이며 키 길게 누르기와 브라우저 단축키는 시도로 집계하지 않는다.
 - 화면 상태는 메뉴, 연습, 결과 중 하나다. 연습은 확정 텍스트가 비어 있는 시작 전 상태와 시작 시각이 있는 진행 상태를 구분한다. 재시도는 입력·계수·시각이 빈 새 세션을 열고, 결과에는 완료한 세션의 집계만 담는다.
-- 운영체제의 IME가 조합 중인 텍스트는 편집기에 남긴다. 조합이 끝난 실제 입력값을 한 번만 반영하고, 조합 확정에 사용한 Enter를 제출로 처리하지 않는다. 확정 버퍼를 NFC로 정규화하고 `Intl.Segmenter`의 문자소 단위로 비교하므로 완성형과 분해형 한글을 같은 글자로 처리한다. [조합 종료 이벤트](https://developer.mozilla.org/en-US/docs/Web/API/Element/compositionend_event) · [문자소 분할](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter)
+- 운영체제의 IME가 조합 중인 텍스트는 편집기에 남긴다. 조합이 끝난 실제 입력값을 한 번만 반영한다. Firefox와 IBus처럼 조합 확정 뒤 같은 키 누름의 일반 Enter가 전달되는 경우를 처리하기 위해, 조합에 쓰인 단축키는 물리 키가 떼어진 후 다시 받는다. 확정 버퍼를 NFC로 정규화하고 `Intl.Segmenter`의 문자소 단위로 비교한다. [조합 종료 이벤트](https://developer.mozilla.org/en-US/docs/Web/API/Element/compositionend_event) · [문자소 분할](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter)
 - 입력은 일반 편집과 Backspace를 지원한다. 붙여넣기와 끌어놓기는 연습 입력창에서 차단하고 이유를 표시한다. 제시문과 같은 길이 이상 입력하면 Enter로 완료할 수 있다. 제출 시 남은 오타도 결과에 반영해서 정확도를 확인할 수 있게 한다. 짧으면 입력을 보존하고 남은 길이를 안내한다. Space는 제시문의 공백을 입력한다. 장문은 같은 방식으로 줄을 확정하며, 마지막 줄에서 세션을 완료한다.
 
 ### 점수 규칙
