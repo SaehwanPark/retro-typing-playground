@@ -7,7 +7,7 @@ type TypingInputProps = {
   onInput: (value: string, at: number) => void;
   onSubmit: () => void;
   onBack: () => void;
-  onBlockedEdit: () => void;
+  onBlockedEdit?: () => void;
 };
 
 export function TypingInput({ language, onInput, onSubmit, onBack, onBlockedEdit }: TypingInputProps) {
@@ -59,11 +59,11 @@ export function TypingInput({ language, onInput, onSubmit, onBack, onBlockedEdit
       onKeyDown={handleKey}
       onPaste={(event) => {
         event.preventDefault();
-        onBlockedEdit();
+        onBlockedEdit?.();
       }}
       onDrop={(event) => {
         event.preventDefault();
-        onBlockedEdit();
+        onBlockedEdit?.();
       }}
     />
   );

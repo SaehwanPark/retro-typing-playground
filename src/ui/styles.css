@@ -203,3 +203,5 @@ kbd:not(:first-child) { margin-inline-start: .55rem; }
 .history-list li { padding: .75rem 0; border-bottom: 1px solid var(--line); line-height: 1.6; }
 .history-list li > span { color: var(--quiet); font-size: .85rem; }
 .storage-notice { color: var(--amber); padding: .75rem clamp(1rem, 5vw, 3rem); margin: 0; border-top: 1px solid var(--line); }
+.challenge-target progress { display: block; width: 100%; margin: .7rem 0 0; accent-color: var(--amber); }
+.challenge-target #typing-target { color: var(--amber); font-weight: 700; }
