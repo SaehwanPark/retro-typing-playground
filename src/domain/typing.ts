@@ -80,10 +80,18 @@ export function calculateTypingScore(
     session.startedAt === null
       ? null
       : Math.max(0, completedAt - session.startedAt);
+  return createTypingScore(correctCount, typedCount, elapsedMs);
+}
+
+export function createTypingScore(
+  correctCount: number,
+  typedCount: number,
+  elapsedMs: number | null,
+): TypingScore {
   const accuracy =
     typedCount === 0 ? null : (correctCount * 100) / typedCount;
   const charactersPerMinute =
-    elapsedMs === null || elapsedMs < 1_000
+    typedCount === 0 || elapsedMs === null || elapsedMs < 1_000
       ? null
       : (correctCount * 60_000) / elapsedMs;
 

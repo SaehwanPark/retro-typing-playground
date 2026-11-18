@@ -1,33 +1,43 @@
 import { useEffect, useState } from "react";
-import type { TextLesson } from "../content/lessons";
+import type { ReactNode } from "react";
+import type { Language } from "../content/lessons";
 import { calculateTypingScore, splitCharacters } from "../domain/typing";
 import type { PracticeSession, TypingScore } from "../domain/typing";
 import { TypingInput } from "./TypingInput";
 import { Scoreboard } from "./Scoreboard";
 
 type PracticeViewProps = {
-  lesson: TextLesson;
+  title: string;
+  language: Language;
+  prompt: string;
   session: PracticeSession;
-  previous: TypingScore | null;
+  previous?: TypingScore | null;
+  context?: ReactNode;
+  startedAt?: number | null;
+  scoreAt?: (now: number) => TypingScore;
+  backLabel?: string;
   onInput: (input: string, at: number) => void;
   onSubmit: (at: number) => void;
-  onFinish: () => void;
+  onFinish?: () => void;
   onBack: () => void;
 };
 
-export function PracticeView({ lesson, session, previous, onInput, onSubmit, onFinish, onBack }: PracticeViewProps) {
+export function PracticeView({
+  title, language, prompt, session, previous, context, startedAt = session.startedAt,
+  scoreAt, backLabel = "메뉴", onInput, onSubmit, onFinish, onBack,
+}: PracticeViewProps) {
   const [now, setNow] = useState(() => performance.now());
   const [notice, setNotice] = useState("");
-  const target = splitCharacters(lesson.text);
+  const target = splitCharacters(prompt);
   const typed = splitCharacters(session.input);
   const remaining = target.length - typed.length;
-  const score = calculateTypingScore(lesson.text, session, now);
+  const score = scoreAt ? scoreAt(now) : calculateTypingScore(prompt, session, now);
 
   useEffect(() => {
-    if (session.startedAt === null) return;
+    if (startedAt === null) return;
     const timer = window.setInterval(() => setNow(performance.now()), 250);
     return () => window.clearInterval(timer);
-  }, [session.startedAt]);
+  }, [startedAt]);
 
   function submit() {
     if (remaining > 0) {
@@ -39,11 +49,12 @@ export function PracticeView({ lesson, session, previous, onInput, onSubmit, onF
 
   return (
     <section className="screen">
-      <button className="back" type="button" onClick={onBack}>← 메뉴</button>
-      <h1 lang={lesson.language}>{lesson.title}</h1>
+      <button className="back" type="button" onClick={onBack}>← {backLabel}</button>
+      <h1 lang={language}>{title}</h1>
+      {context}
       <div className="target">
         <div className="target-label"><strong>제시문</strong><span>{typed.length} / {target.length}자</span></div>
-        <p id="typing-target" aria-label={lesson.text} lang={lesson.language}>
+        <p id="typing-target" aria-label={prompt} lang={language}>
           {target.map((character, index) => {
             const status = index === typed.length ? "current" :
               index > typed.length ? "" : typed[index] === character ? "correct" : "wrong";
@@ -57,7 +68,7 @@ export function PracticeView({ lesson, session, previous, onInput, onSubmit, onF
       <div className="entry">
         <label htmlFor="typing-input">따라 입력하기</label>
         <TypingInput
-          language={lesson.language}
+          language={language}
           onInput={(input, at) => {
             setNow(at);
             setNotice("");
@@ -69,7 +80,7 @@ export function PracticeView({ lesson, session, previous, onInput, onSubmit, onF
         />
       </div>
       <div className="practice-actions">
-        <p className="keys" id="typing-hint"><kbd>Enter</kbd> 제출 <kbd>Esc</kbd> 메뉴</p>
+        <p className="keys" id="typing-hint"><kbd>Enter</kbd> 제출 <kbd>Esc</kbd> {backLabel}</p>
         <button type="button" className="button" onClick={submit}>제출</button>
       </div>
       <p className="notice" role="status">{notice}</p>
