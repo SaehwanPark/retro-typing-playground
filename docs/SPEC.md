@@ -15,7 +15,7 @@
   - 이슈 [#23](https://github.com/SaehwanPark/retro-typing-playground/issues/23): macOS Tahoe + Chrome에서 기본 한국어 입력기의 조합 확정 Space가 입력에 공백 두 칸을 남기는 문제를 해결한다. 조합 확정 Space는 입력을 이어갈 때 구분 공백 한 칸만 추가하고, 완료 입력에서는 한 번만 제출한다.
   - 이슈 [#24](https://github.com/SaehwanPark/retro-typing-playground/issues/24): 연습 화면 상단의 환경설정과 화면 저장 버튼을 같은 수직 기준선에 맞춘다.
   - 완료 조건: macOS Chrome 157의 OS 기본 두벌식 IME 조합 입력에서 공백 하나와 단일 제출을 확인하고, Windows Chrome 기준 동작을 유지한다. 두 상단 버튼의 수직 정렬을 연습 화면에서 확인한다. 설치와 프로덕션 빌드를 확인하고 플랫폼 증거를 기록한다.
-  - 진행 확인: 프로덕션 빌드 통과. Chrome에서 두 버튼의 위쪽 좌표가 모두 95.3 CSS px로 맞았다. CUA 키 입력은 한글 음절 조합을 만들지 못해 실제 macOS IME 확인은 미완료다.
+  - 진행 확인: 프로덕션 빌드 통과. Chrome에서 두 버튼의 위쪽 좌표가 모두 95.3 CSS px로 맞았다. 2026-11-18 사용자 실제 macOS 입력기 재검증에서 수정 후에도 한 번의 Space가 공백 두 칸을 남겼다. 조합 종료 시 이미 반영된 공백을 커서 앞에서 확인하도록 보완했고 재확인을 기다린다.
 
 ## 완료
 
