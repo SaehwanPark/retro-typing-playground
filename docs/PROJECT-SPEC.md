@@ -4,7 +4,7 @@
 
 ## 참조 경험과 제품 범위
 
-Windows Chrome에서 참조 앱의 메뉴 이동, 한 줄 제출, 짧은 글의 줄 이동을 직접 확인했다. 메뉴는 가운데에 간결하게 배치되고 선택한 행을 강조한다. 여러 화면에서 방향키와 Enter로 앞으로 가고 Esc로 한 단계씩 돌아갈 수 있다. [온라인 타자교실](https://typing.zidell.me/) · [에듀베이지 소개](https://www.edubeige.com/post/typing-zidell)
+Windows Chrome에서 참조 앱의 메뉴 이동, 설정 항목의 방향키 이동, 한 줄 제출, 짧은 글의 줄 이동을 직접 확인했다. 메뉴는 가운데에 간결하게 배치되고 선택한 행을 강조한다. 여러 화면에서 방향키와 Enter로 앞으로 가고 Esc로 한 단계씩 돌아갈 수 있다. [온라인 타자교실](https://typing.zidell.me/) · [에듀베이지 소개](https://www.edubeige.com/post/typing-zidell)
 
 | 참조 앱에서 확인한 동작 | 프로젝트에서 적용할 경험 |
 | --- | --- |

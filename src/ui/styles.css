@@ -102,9 +102,33 @@ select {
   border-radius: .25rem;
 }
 .settings-page { width: min(100%, 36rem); margin-top: 1.25rem; }
-.settings-page label { display: grid; gap: .35rem; }
-.settings-page label small { color: var(--quiet); line-height: 1.45; }
-.settings-panel select { width: min(100%, 24rem); min-height: 2.5rem; padding: .35rem .5rem; }
+.settings-page .setting-choice {
+  display: grid;
+  gap: .35rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.settings-page .setting-choice legend { padding: 0; font-weight: 600; }
+.settings-page .setting-choice-options { display: flex; flex-wrap: wrap; gap: .4rem; }
+.settings-page .setting-choice-option {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 2.5rem;
+  padding: .35rem .55rem;
+  border: 1px solid var(--field-border);
+  border-radius: .2rem;
+  background: var(--field);
+  cursor: pointer;
+}
+.settings-page .setting-choice-option input { flex: none; accent-color: var(--accent); }
+.settings-page .setting-choice-option input:focus-visible { outline: none; }
+.settings-page .setting-choice-option input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 3px; }
+.settings-page .setting-choice-option input:checked + span { color: var(--accent); font-weight: 650; }
+.settings-page .setting-choice:disabled .setting-choice-option { cursor: not-allowed; opacity: .65; }
+.settings-page .setting-choice > small { color: var(--quiet); line-height: 1.45; }
 .settings-page .button { width: fit-content; }
 
 .screen { padding: clamp(1rem, 5vw, 3rem); }
