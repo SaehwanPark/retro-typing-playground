@@ -1,21 +1,15 @@
+import { useEffect, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
 import {
-  colorThemes,
   defaultColorTheme,
   defaultPracticeFont,
   defaultSize,
-  isColorTheme,
-  isPracticeFont,
-  isTextSize,
-  practiceFonts,
-  textSizes,
 } from "../storage/settingsStorage";
 import type { ColorTheme, PracticeFont, TextSize } from "../storage/settingsStorage";
 import type { AppPreferences } from "../storage/appPreferences";
 import type { InterfaceText } from "../content/interfaceText";
 import type { Language } from "../content/lessons";
-import { isTypingSpeedUnit } from "../domain/typingSpeed";
 import type { TypingSpeedUnit, TypingSpeedUnits } from "../domain/typingSpeed";
-import { useFocus } from "./useFocus";
 
 type DisplaySettingsProps = {
   interfaceLanguage: Language;
@@ -40,17 +34,83 @@ type DisplaySettingsProps = {
   copy: InterfaceText;
 };
 
-function optionLabels(copy: InterfaceText, setting: "size" | "theme" | "font") {
-  if (setting === "size") return {
-    standard: copy.standardSize,
-    large: copy.largeSize,
-    largest: copy.largestSize,
-  };
-  if (setting === "theme") return {
-    terminal: copy.terminalTheme,
-    paper: copy.paperTheme,
-  };
-  return { gothic: copy.gothicFont, serif: copy.serifFont };
+type SettingOption<Value extends string> = { value: Value; label: string };
+
+type SettingRowProps = {
+  id: string;
+  label: string;
+  active: boolean;
+  onFocus: () => void;
+  disabled?: boolean;
+  help?: string;
+};
+
+type ChoiceRowProps<Value extends string> = SettingRowProps & {
+  value: Value;
+  options: readonly SettingOption<Value>[];
+  onChange: (value: Value) => void;
+};
+
+function cycleOption<Value extends string>(
+  value: Value,
+  options: readonly SettingOption<Value>[],
+  direction: -1 | 1,
+): Value {
+  const currentIndex = options.findIndex((option) => option.value === value);
+  const nextIndex = (currentIndex + direction + options.length) % options.length;
+  return options[nextIndex]?.value ?? value;
+}
+
+function ChoiceRow<Value extends string>({
+  id, label, active, value, options, onChange, onFocus, disabled = false, help,
+}: ChoiceRowProps<Value>) {
+  const current = options.find((option) => option.value === value);
+  const helpId = help ? `${id}-help` : undefined;
+  const className = `setting-row${active ? " selected" : ""}`;
+  return (
+    <div className="setting-row-wrap">
+      <button
+        type="button"
+        className={className}
+        data-setting-row={id}
+        tabIndex={active ? 0 : -1}
+        aria-describedby={helpId}
+        aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight Enter Space"
+        disabled={disabled}
+        onFocus={onFocus}
+        onClick={() => onChange(cycleOption(value, options, 1))}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+            event.preventDefault();
+            onChange(cycleOption(value, options, event.key === "ArrowRight" ? 1 : -1));
+          }
+        }}
+      >
+        <span className="setting-row-label">{label}</span>
+        <span className="setting-row-value">{current?.label ?? value}</span>
+      </button>
+      {help && <small className="setting-row-help" id={helpId}>{help}</small>}
+    </div>
+  );
+}
+
+function ActionRow({ id, label, active, onFocus, onClick }: SettingRowProps & { onClick: () => void }) {
+  return (
+    <div className="setting-row-wrap">
+      <button
+        type="button"
+        className={`setting-row setting-action${active ? " selected" : ""}`}
+        data-setting-row={id}
+        tabIndex={active ? 0 : -1}
+        aria-keyshortcuts="ArrowUp ArrowDown Enter Space"
+        onFocus={onFocus}
+        onClick={onClick}
+      >
+        <span className="setting-row-label">{label}</span>
+        <span className="setting-row-value" aria-hidden="true">↵</span>
+      </button>
+    </div>
+  );
 }
 
 export function DisplaySettings({
@@ -75,110 +135,180 @@ export function DisplaySettings({
   notice,
   copy,
 }: DisplaySettingsProps) {
-  const heading = useFocus<HTMLHeadingElement>();
+  const menu = useRef<HTMLDivElement>(null);
+  const [focusedRow, setFocusedRow] = useState("interface-language");
   const labels = Array.from(new Set(notice.split(" ").filter(Boolean))).map((code) =>
     code === "invalid" ? copy.invalidSettings : code === "save-failed" ? copy.saveFailed : ""
   ).filter(Boolean);
-  const sizeLabels = optionLabels(copy, "size");
-  const themeLabels = optionLabels(copy, "theme");
-  const fontLabels = optionLabels(copy, "font");
+
+  useEffect(() => {
+    const firstRow = menu.current?.querySelector<HTMLButtonElement>("[data-setting-row]:not(:disabled)");
+    if (firstRow) {
+      setFocusedRow(firstRow.dataset.settingRow ?? "interface-language");
+      firstRow.focus({ preventScroll: true });
+    }
+  }, []);
+
+  function handleKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (event.key === "Escape" && !event.nativeEvent.isComposing) {
+      onBack();
+      return;
+    }
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ||
+        !["ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) return;
+
+    const rows = Array.from(menu.current?.querySelectorAll<HTMLButtonElement>("[data-setting-row]:not(:disabled)") ?? []);
+    const currentIndex = rows.findIndex((row) => row === event.target);
+    if (currentIndex < 0 || rows.length === 0) return;
+
+    event.preventDefault();
+    let nextIndex = currentIndex;
+    if (event.key === "ArrowUp") nextIndex = (currentIndex - 1 + rows.length) % rows.length;
+    if (event.key === "ArrowDown") nextIndex = (currentIndex + 1) % rows.length;
+    if (event.key === "Home") nextIndex = 0;
+    if (event.key === "End") nextIndex = rows.length - 1;
+    const next = rows[nextIndex];
+    if (next) {
+      setFocusedRow(next.dataset.settingRow ?? "interface-language");
+      next.focus({ preventScroll: true });
+    }
+  }
 
   return (
-    <section className="screen settings-screen" onKeyDown={(event) => {
-      if (event.key === "Escape" && !event.nativeEvent.isComposing &&
-          !(event.target instanceof HTMLSelectElement)) onBack();
-    }}>
+    <section className="screen settings-screen" onKeyDown={handleKeyDown}>
       <button className="back" type="button" onClick={onBack}>{backLabel}</button>
-      <h1 ref={heading} tabIndex={-1}>{copy.settings}</h1>
+      <h1 tabIndex={-1}>{copy.settings}</h1>
       <p className="lede">{copy.settingsHelp}</p>
-      <div className="settings-panel settings-page">
-        <label>{copy.interfaceLanguage}
-          <select value={interfaceLanguage} onChange={(event) => {
-            const value = event.currentTarget.value;
-            if (value === "ko" || value === "en") onInterfaceLanguageChange(value);
-          }}>
-            <option value="ko">{copy.korean}</option>
-            <option value="en">{copy.english}</option>
-          </select>
-        </label>
-        <label>{copy.practiceLanguage}
-          <select value={practiceLanguage} disabled={practiceLanguageLocked} onChange={(event) => {
-            const value = event.currentTarget.value;
-            if (value === "ko" || value === "en") onPracticeLanguageChange(value);
-          }}>
-            <option value="ko">{copy.korean}</option>
-            <option value="en">{copy.english}</option>
-          </select>
-          {practiceLanguageLocked && <small>{copy.practiceLanguageAfterMenu}</small>}
-        </label>
-        <label>{copy.koreanSpeedUnit}
-          <select value={typingSpeedUnits.ko} onChange={(event) => {
-            const value = event.currentTarget.value;
-            if (isTypingSpeedUnit(value)) onTypingSpeedUnitChange("ko", value);
-          }}>
-            <option value="cpm">{copy.speedUnitCpm("ko")}</option>
-            <option value="wpm">{copy.speedUnitWpm}</option>
-          </select>
-        </label>
-        <label>{copy.englishSpeedUnit}
-          <select value={typingSpeedUnits.en} onChange={(event) => {
-            const value = event.currentTarget.value;
-            if (isTypingSpeedUnit(value)) onTypingSpeedUnitChange("en", value);
-          }}>
-            <option value="cpm">{copy.speedUnitCpm("en")}</option>
-            <option value="wpm">{copy.speedUnitWpm}</option>
-          </select>
-          <small>{copy.speedUnitHelp}</small>
-        </label>
-        <label>{copy.practiceSize}
-          <select value={size} onChange={(event) => {
-            const value = event.currentTarget.value;
-            if (isTextSize(value)) void onSizeChange(value);
-          }}>
-            {Object.keys(textSizes).map((value) => (
-              <option key={value} value={value}>{sizeLabels[value as TextSize]}</option>
-            ))}
-          </select>
-        </label>
-        <button type="button" className="button secondary" onClick={() => void onSizeChange(defaultSize, true)}>
-          {copy.resetSize}
-        </button>
-        <label>{copy.colorTheme}
-          <select value={theme} onChange={(event) => {
-            const value = event.currentTarget.value;
-            if (isColorTheme(value)) void onThemeChange(value);
-          }}>
-            {Object.keys(colorThemes).map((value) => (
-              <option key={value} value={value}>{themeLabels[value as ColorTheme]}</option>
-            ))}
-          </select>
-        </label>
-        <button type="button" className="button secondary" onClick={() => void onThemeChange(defaultColorTheme, true)}>
-          {copy.resetTheme}
-        </button>
-        <label>{copy.practiceFont} · {practiceLanguage === "ko" ? copy.korean : copy.english}
-          <select value={font} onChange={(event) => {
-            const value = event.currentTarget.value;
-            if (isPracticeFont(value)) void onFontChange(value);
-          }}>
-            {Object.keys(practiceFonts).map((value) => (
-              <option key={value} value={value}>{fontLabels[value as PracticeFont]}</option>
-            ))}
-          </select>
-        </label>
-        <button type="button" className="button secondary" onClick={() => void onFontChange(defaultPracticeFont, true)}>
-          {copy.resetFont}
-        </button>
-        <label>{copy.completionSound}
-          <select value={completionSound ? "on" : "off"} onChange={(event) => {
-            onCompletionSoundChange(event.currentTarget.value === "on");
-          }}>
-            <option value="off">{copy.soundOff}</option>
-            <option value="on">{copy.soundOn}</option>
-          </select>
-          <small>{copy.completionSoundHelp}</small>
-        </label>
-        <button type="button" className="button secondary" onClick={onReset}>{copy.resetSettings}</button>
+      <div ref={menu} className="settings-panel settings-page settings-menu" role="group" aria-label={copy.settings}>
+        <ChoiceRow<Language>
+          id="interface-language"
+          label={copy.interfaceLanguage}
+          active={focusedRow === "interface-language"}
+          value={interfaceLanguage}
+          options={[
+            { value: "ko", label: copy.korean },
+            { value: "en", label: copy.english },
+          ]}
+          onChange={onInterfaceLanguageChange}
+          onFocus={() => setFocusedRow("interface-language")}
+        />
+        <ChoiceRow<Language>
+          id="practice-language"
+          label={copy.practiceLanguage}
+          active={focusedRow === "practice-language"}
+          value={practiceLanguage}
+          options={[
+            { value: "ko", label: copy.korean },
+            { value: "en", label: copy.english },
+          ]}
+          onChange={onPracticeLanguageChange}
+          onFocus={() => setFocusedRow("practice-language")}
+          disabled={practiceLanguageLocked}
+          {...(practiceLanguageLocked ? { help: copy.practiceLanguageAfterMenu } : {})}
+        />
+        <ChoiceRow<TypingSpeedUnit>
+          id="korean-speed-unit"
+          label={copy.koreanSpeedUnit}
+          active={focusedRow === "korean-speed-unit"}
+          value={typingSpeedUnits.ko}
+          options={[
+            { value: "cpm", label: copy.speedUnitCpm("ko") },
+            { value: "wpm", label: copy.speedUnitWpm },
+          ]}
+          onChange={(value) => onTypingSpeedUnitChange("ko", value)}
+          onFocus={() => setFocusedRow("korean-speed-unit")}
+        />
+        <ChoiceRow<TypingSpeedUnit>
+          id="english-speed-unit"
+          label={copy.englishSpeedUnit}
+          active={focusedRow === "english-speed-unit"}
+          value={typingSpeedUnits.en}
+          options={[
+            { value: "cpm", label: copy.speedUnitCpm("en") },
+            { value: "wpm", label: copy.speedUnitWpm },
+          ]}
+          onChange={(value) => onTypingSpeedUnitChange("en", value)}
+          onFocus={() => setFocusedRow("english-speed-unit")}
+          help={copy.speedUnitHelp}
+        />
+        <ChoiceRow<TextSize>
+          id="practice-size"
+          label={copy.practiceSize}
+          active={focusedRow === "practice-size"}
+          value={size}
+          options={[
+            { value: "standard", label: copy.standardSize },
+            { value: "large", label: copy.largeSize },
+            { value: "largest", label: copy.largestSize },
+          ]}
+          onChange={(value) => { void onSizeChange(value); }}
+          onFocus={() => setFocusedRow("practice-size")}
+        />
+        <ActionRow
+          id="reset-size"
+          label={copy.resetSize}
+          active={focusedRow === "reset-size"}
+          onFocus={() => setFocusedRow("reset-size")}
+          onClick={() => void onSizeChange(defaultSize, true)}
+        />
+        <ChoiceRow<ColorTheme>
+          id="color-theme"
+          label={copy.colorTheme}
+          active={focusedRow === "color-theme"}
+          value={theme}
+          options={[
+            { value: "terminal", label: copy.terminalTheme },
+            { value: "paper", label: copy.paperTheme },
+          ]}
+          onChange={(value) => { void onThemeChange(value); }}
+          onFocus={() => setFocusedRow("color-theme")}
+        />
+        <ActionRow
+          id="reset-theme"
+          label={copy.resetTheme}
+          active={focusedRow === "reset-theme"}
+          onFocus={() => setFocusedRow("reset-theme")}
+          onClick={() => void onThemeChange(defaultColorTheme, true)}
+        />
+        <ChoiceRow<PracticeFont>
+          id="practice-font"
+          label={`${copy.practiceFont} · ${practiceLanguage === "ko" ? copy.korean : copy.english}`}
+          active={focusedRow === "practice-font"}
+          value={font}
+          options={[
+            { value: "gothic", label: copy.gothicFont },
+            { value: "serif", label: copy.serifFont },
+          ]}
+          onChange={(value) => { void onFontChange(value); }}
+          onFocus={() => setFocusedRow("practice-font")}
+        />
+        <ActionRow
+          id="reset-font"
+          label={copy.resetFont}
+          active={focusedRow === "reset-font"}
+          onFocus={() => setFocusedRow("reset-font")}
+          onClick={() => void onFontChange(defaultPracticeFont, true)}
+        />
+        <ChoiceRow<"on" | "off">
+          id="completion-sound"
+          label={copy.completionSound}
+          active={focusedRow === "completion-sound"}
+          value={completionSound ? "on" : "off"}
+          options={[
+            { value: "off", label: copy.soundOff },
+            { value: "on", label: copy.soundOn },
+          ]}
+          onChange={(value) => onCompletionSoundChange(value === "on")}
+          onFocus={() => setFocusedRow("completion-sound")}
+          help={copy.completionSoundHelp}
+        />
+        <ActionRow
+          id="reset-settings"
+          label={copy.resetSettings}
+          active={focusedRow === "reset-settings"}
+          onFocus={() => setFocusedRow("reset-settings")}
+          onClick={onReset}
+        />
       </div>
       {labels.map((message) => <p key={message} className="notice" role="status">{message}</p>)}
     </section>

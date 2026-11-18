@@ -72,16 +72,35 @@ function restoreContentFocus(root: HTMLDivElement | null, state: PracticeState):
   } else if (visible.screen === "challenge") {
     target = root.querySelector("#typing-input") ?? root.querySelector("button:not(.back)");
   }
-  target?.focus();
+  target?.focus({ preventScroll: true });
+}
+
+function canRestoreFocus(root: HTMLElement | null, target: HTMLElement): boolean {
+  return root !== null && root.contains(target) &&
+    target.closest("[hidden]") === null && !target.matches(":disabled");
+}
+
+function restoreScreenFocus(root: HTMLElement | null, screenContent: HTMLDivElement | null, state: PracticeState): void {
+  if (state.screen === "settings" && root) {
+    const selected = root.querySelector<HTMLButtonElement>(".settings-menu [data-setting-row]:not(:disabled)");
+    const heading = root.querySelector<HTMLElement>(".settings-screen h1[tabindex='-1']");
+    (selected ?? heading)?.focus({ preventScroll: true });
+    return;
+  }
+  restoreContentFocus(screenContent, state);
 }
 
 export function App() {
   const shell = useRef<HTMLElement>(null);
   const screenContent = useRef<HTMLDivElement>(null);
   const focusBeforeSettings = useRef<HTMLElement | null>(null);
+  const lastAppFocus = useRef<HTMLElement | null>(null);
+  const focusWasLost = useRef(false);
   const settingsWereOpen = useRef(false);
   const practice = usePracticeState();
   const { state, pending, latest, dispatch, acknowledge } = practice;
+  const stateForFocus = useRef(state);
+  stateForFocus.current = state;
   const currentScreen = contentState(state);
   const appPreferences = useAppPreferences();
   const { interfaceLanguage, practiceLanguage, completionSound, typingSpeedUnits } = appPreferences.preferences;
@@ -121,6 +140,66 @@ export function App() {
     document.documentElement.lang = interfaceLanguage;
     document.documentElement.dataset.practiceLanguage = practiceLanguage;
   }, [interfaceLanguage, practiceLanguage]);
+
+  useEffect(() => {
+    let restoreFrame: number | null = null;
+
+    function rememberFocus(event: FocusEvent) {
+      if (event.target instanceof HTMLElement && canRestoreFocus(shell.current, event.target)) {
+        lastAppFocus.current = event.target;
+      }
+    }
+
+    function markFocusLost() {
+      const active = document.activeElement;
+      if (active instanceof HTMLElement && canRestoreFocus(shell.current, active)) {
+        lastAppFocus.current = active;
+      }
+      focusWasLost.current = true;
+    }
+
+    function restoreFocus() {
+      if (!focusWasLost.current || document.visibilityState === "hidden") return;
+      const previous = lastAppFocus.current;
+      if (previous && canRestoreFocus(shell.current, previous)) {
+        previous.focus({ preventScroll: true });
+      } else {
+        restoreScreenFocus(shell.current, screenContent.current, stateForFocus.current);
+      }
+      const active = document.activeElement;
+      if (active instanceof HTMLElement && canRestoreFocus(shell.current, active)) {
+        lastAppFocus.current = active;
+        focusWasLost.current = false;
+      }
+    }
+
+    function scheduleFocusRestore() {
+      if (restoreFrame !== null) window.cancelAnimationFrame(restoreFrame);
+      restoreFrame = window.requestAnimationFrame(() => {
+        restoreFrame = null;
+        restoreFocus();
+      });
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "hidden") markFocusLost();
+      else scheduleFocusRestore();
+    }
+
+    document.addEventListener("focusin", rememberFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", markFocusLost);
+    window.addEventListener("focus", scheduleFocusRestore);
+    window.addEventListener("pageshow", scheduleFocusRestore);
+    return () => {
+      document.removeEventListener("focusin", rememberFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("blur", markFocusLost);
+      window.removeEventListener("focus", scheduleFocusRestore);
+      window.removeEventListener("pageshow", scheduleFocusRestore);
+      if (restoreFrame !== null) window.cancelAnimationFrame(restoreFrame);
+    };
+  }, []);
 
   useEffect(() => {
     if (settingsWereOpen.current && state.screen !== "settings") {

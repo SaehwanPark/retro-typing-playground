@@ -102,10 +102,31 @@ select {
   border-radius: .25rem;
 }
 .settings-page { width: min(100%, 36rem); margin-top: 1.25rem; }
-.settings-page label { display: grid; gap: .35rem; }
-.settings-page label small { color: var(--quiet); line-height: 1.45; }
-.settings-panel select { width: min(100%, 24rem); min-height: 2.5rem; padding: .35rem .5rem; }
-.settings-page .button { width: fit-content; }
+.settings-page.settings-menu { gap: 0; padding: 0; }
+.setting-row-wrap { border-bottom: 1px solid var(--line); }
+.setting-row-wrap:last-child { border-bottom: 0; }
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: .65rem .85rem;
+  border: 0;
+  border-radius: 0;
+  color: var(--ink);
+  background: transparent;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.setting-row:hover, .setting-row.selected { background: var(--hover); }
+.setting-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.setting-row:disabled { color: var(--quiet); cursor: not-allowed; }
+.setting-row-value { color: var(--accent); font-weight: 600; text-align: end; }
+.setting-action .setting-row-value { color: var(--quiet); }
+.setting-row-help { display: block; padding: 0 .85rem .65rem; color: var(--quiet); line-height: 1.45; }
 
 .screen { padding: clamp(1rem, 5vw, 3rem); }
 h1 { margin: 0; font-size: clamp(1.55rem, 4vw, 2.55rem); line-height: 1.25; }
