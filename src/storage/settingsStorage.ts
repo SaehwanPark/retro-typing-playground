@@ -1,3 +1,5 @@
+import type { Language } from "../content/lessons";
+
 export const settingsKey = "retro-typing-playground:display";
 export const colorThemeKey = "retro-typing-playground:color-theme";
 export const practiceFontKey = "retro-typing-playground:practice-font";
@@ -25,6 +27,8 @@ export const practiceFonts = {
 
 export type PracticeFont = keyof typeof practiceFonts;
 export const defaultPracticeFont: PracticeFont = "gothic";
+export type PracticeFonts = Readonly<Record<Language, PracticeFont>>;
+export const defaultPracticeFonts: PracticeFonts = { ko: defaultPracticeFont, en: defaultPracticeFont };
 
 export function isTextSize(value: unknown): value is TextSize {
   return typeof value === "string" && Object.hasOwn(textSizes, value);
@@ -102,31 +106,62 @@ export async function saveColorTheme(theme: ColorTheme, reset: boolean): Promise
   }
 }
 
-export function readPracticeFont(): PracticeFont | null {
+export function readPracticeFonts(): PracticeFonts | null {
   try {
     const raw = localStorage.getItem(practiceFontKey);
-    if (raw === null) return defaultPracticeFont;
+    if (raw === null) return defaultPracticeFonts;
     const value: unknown = JSON.parse(raw);
-    if (typeof value !== "object" || value === null || !("version" in value) ||
-        value.version !== 1 || !("font" in value) || !isPracticeFont(value.font)) {
+    if (typeof value !== "object" || value === null || !("version" in value)) {
       return null;
     }
-    return value.font;
+    if (value.version === 1 && "font" in value && isPracticeFont(value.font)) {
+      return { ko: value.font, en: value.font };
+    }
+    if (value.version === 2 && "fonts" in value && typeof value.fonts === "object" && value.fonts !== null &&
+        "ko" in value.fonts && isPracticeFont(value.fonts.ko) &&
+        "en" in value.fonts && isPracticeFont(value.fonts.en)) {
+      return { ko: value.fonts.ko, en: value.fonts.en };
+    }
+    return null;
   } catch {
     return null;
   }
 }
 
-export async function savePracticeFont(font: PracticeFont, reset: boolean): Promise<boolean> {
+export function readPracticeFont(language: Language = "ko"): PracticeFont | null {
+  return readPracticeFonts()?.[language] ?? null;
+}
+
+export async function savePracticeFont(
+  font: PracticeFont,
+  reset: boolean,
+  language: Language = "ko",
+): Promise<boolean> {
   try {
     return await navigator.locks.request(practiceFontKey, () => {
-      if (reset) {
+      const current = readPracticeFonts();
+      if (reset && current === null) {
         localStorage.removeItem(practiceFontKey);
         return true;
       }
-      if (readPracticeFont() === null) return false;
+      if (current === null) return false;
+      const fonts = { ...current, [language]: reset ? defaultPracticeFont : font };
+      if (fonts.ko === defaultPracticeFont && fonts.en === defaultPracticeFont) {
+        localStorage.removeItem(practiceFontKey);
+        return true;
+      }
+      localStorage.setItem(practiceFontKey, JSON.stringify({ version: 2, fonts }));
+      return true;
+    });
+  } catch {
+    return false;
+  }
+}
 
-      localStorage.setItem(practiceFontKey, JSON.stringify({ version: 1, font }));
+export async function resetPracticeFonts(): Promise<boolean> {
+  try {
+    return await navigator.locks.request(practiceFontKey, () => {
+      localStorage.removeItem(practiceFontKey);
       return true;
     });
   } catch {

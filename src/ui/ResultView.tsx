@@ -1,4 +1,5 @@
 import type { TypingScore } from "../domain/typing";
+import type { InterfaceText } from "../content/interfaceText";
 import { Scoreboard } from "./Scoreboard";
 import { useFocus } from "./useFocus";
 
@@ -10,10 +11,12 @@ type ResultViewProps = {
   backLabel?: string;
   onRetry: () => void;
   onBack: () => void;
+  copy: InterfaceText;
 };
 
-export function ResultView({ title, score, showSpeed, comparison, backLabel = "메뉴", onRetry, onBack }: ResultViewProps) {
+export function ResultView({ title, score, showSpeed, comparison, backLabel, onRetry, onBack, copy }: ResultViewProps) {
   const heading = useFocus<HTMLHeadingElement>();
+  const destination = backLabel ?? copy.menu;
 
   return (
     <section className="screen" onKeyDown={(event) => {
@@ -21,20 +24,20 @@ export function ResultView({ title, score, showSpeed, comparison, backLabel = "�
       if (event.key === "Escape") onBack();
       if (event.key === "Enter" && event.target === heading.current) onRetry();
     }}>
-      <h1 ref={heading} tabIndex={-1} aria-describedby="result-title result-hint">연습 완료</h1>
+      <h1 ref={heading} tabIndex={-1} aria-describedby="result-title result-hint">{copy.practiceComplete}</h1>
       <p id="result-title" className="lede">{title}</p>
-      <Scoreboard score={score} label="이번 결과" showSpeed={showSpeed} showTime />
+      <Scoreboard score={score} label={copy.thisResult} showSpeed={showSpeed} showTime copy={copy} />
       {comparison && (
         <section className="previous-score" aria-labelledby="comparison-title">
-          <h2 id="comparison-title">같은 모드의 이전 기록</h2>
-          <Scoreboard score={comparison} label="이전 결과" showSpeed={showSpeed} showTime />
+          <h2 id="comparison-title">{copy.sameModePrevious}</h2>
+          <Scoreboard score={comparison} label={copy.previousResult} showSpeed={showSpeed} showTime copy={copy} />
         </section>
       )}
       <div className="result-actions">
-        <button type="button" className="button" onClick={onRetry}>다시 연습</button>
-        <button type="button" className="button secondary" onClick={onBack}>{backLabel}로 돌아가기</button>
+        <button type="button" className="button" onClick={onRetry}>{copy.practiceAgain}</button>
+        <button type="button" className="button secondary" onClick={onBack}>{copy.returnTo(destination)}</button>
       </div>
-      <p className="keys" id="result-hint"><kbd>Enter</kbd> 다시 연습 <kbd>Esc</kbd> {backLabel}</p>
+      <p className="keys" id="result-hint"><kbd>Enter</kbd> {copy.practiceAgain} <kbd>Esc</kbd> {destination}</p>
     </section>
   );
 }

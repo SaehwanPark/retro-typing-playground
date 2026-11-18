@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import type { Language } from "../content/lessons";
+import type { InterfaceText } from "../content/interfaceText";
 import { calculateTypingScore, splitCharacters } from "../domain/typing";
 import type { PracticeSession, TypingScore } from "../domain/typing";
 import { TypingInput } from "./TypingInput";
@@ -16,6 +17,7 @@ type PracticeViewProps = {
   startedAt?: number | null;
   scoreAt?: (now: number) => TypingScore;
   backLabel?: string;
+  copy: InterfaceText;
   onInput: (input: string, at: number) => void;
   onSubmit: (at: number) => void;
   onFinish?: () => void;
@@ -24,7 +26,7 @@ type PracticeViewProps = {
 
 export function PracticeView({
   title, language, prompt, session, previous, context, startedAt = session.startedAt,
-  scoreAt, backLabel = "메뉴", onInput, onSubmit, onFinish, onBack,
+  scoreAt, backLabel, onInput, onSubmit, onFinish, onBack, copy,
 }: PracticeViewProps) {
   const [now, setNow] = useState(() => performance.now());
   const [notice, setNotice] = useState("");
@@ -41,7 +43,7 @@ export function PracticeView({
 
   function submit() {
     if (remaining > 0) {
-      setNotice(`제시문이 ${remaining}자 남았습니다.`);
+      setNotice(copy.remainingCharacters(remaining));
       return;
     }
     onSubmit(performance.now());
@@ -49,11 +51,11 @@ export function PracticeView({
 
   return (
     <section className="screen">
-      <button className="back" type="button" onClick={onBack}>← {backLabel}</button>
+      <button className="back" type="button" onClick={onBack}>← {backLabel ?? copy.menu}</button>
       <h1 lang={language}>{title}</h1>
       {context}
       <div className="target">
-        <div className="target-label"><strong>제시문</strong><span>{typed.length} / {target.length}자</span></div>
+        <div className="target-label"><strong>{copy.currentPrompt}</strong><span>{typed.length} / {target.length}</span></div>
         <p id="typing-target" aria-label={prompt} lang={language}>
           {target.map((character, index) => {
             const status = index === typed.length ? "current" :
@@ -66,7 +68,7 @@ export function PracticeView({
         </p>
       </div>
       <div className="entry">
-        <label htmlFor="typing-input">따라 입력하기</label>
+        <label htmlFor="typing-input">{copy.followAlong}</label>
         <TypingInput
           language={language}
           onInput={(input, at) => {
@@ -76,20 +78,20 @@ export function PracticeView({
           }}
           onSubmit={submit}
           onBack={onBack}
-          onBlockedEdit={() => setNotice("연습 문장은 키보드로 직접 입력하세요.")}
+          onBlockedEdit={() => setNotice(copy.blockedPracticeInput)}
         />
       </div>
       <div className="practice-actions">
-        <p className="keys" id="typing-hint"><kbd>Enter</kbd> 제출 <kbd>Esc</kbd> {backLabel}</p>
-        <button type="button" className="button" onClick={submit}>제출</button>
+        <p className="keys" id="typing-hint"><kbd>Enter</kbd> {copy.submit} <kbd>Esc</kbd> {backLabel ?? copy.menu}</p>
+        <button type="button" className="button" onClick={submit}>{copy.submit}</button>
       </div>
       <p className="notice" role="status">{notice}</p>
-      <Scoreboard label="현재 점수" score={score} />
+      <Scoreboard label={copy.currentScore} score={score} copy={copy} />
       {previous && (
         <section className="previous-score" aria-labelledby="previous-title">
-          <h2 id="previous-title">직전 문장</h2>
-          <Scoreboard label="직전 점수" score={previous} />
-          <button type="button" className="button secondary" onClick={onFinish}>연습 마치기</button>
+          <h2 id="previous-title">{copy.previousSentence}</h2>
+          <Scoreboard label={copy.previousScore} score={previous} copy={copy} />
+          <button type="button" className="button secondary" onClick={onFinish}>{copy.finishPractice}</button>
         </section>
       )}
     </section>

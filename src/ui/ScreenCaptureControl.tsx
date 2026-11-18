@@ -1,10 +1,15 @@
+import type { InterfaceText } from "../content/interfaceText";
+
 type ScreenCaptureControlProps = {
   isSaving: boolean;
-  message: string;
+  status: "idle" | "saving" | "saved" | "failed";
   onSave: () => void;
+  copy: InterfaceText;
 };
 
-export function ScreenCaptureControl({ isSaving, message, onSave }: ScreenCaptureControlProps) {
+export function ScreenCaptureControl({ isSaving, status, onSave, copy }: ScreenCaptureControlProps) {
+  const message = status === "saved" ? copy.screenCaptureSuccess :
+    status === "failed" ? copy.screenCaptureError : "";
   return (
     <div className="screen-capture-control" data-capture-ignore="true">
       <button
@@ -13,7 +18,7 @@ export function ScreenCaptureControl({ isSaving, message, onSave }: ScreenCaptur
         onClick={onSave}
         disabled={isSaving}
       >
-        화면 저장 <kbd>Ctrl+S</kbd>
+        {isSaving ? copy.saving : copy.screenCapture} <kbd>Ctrl+S</kbd>
       </button>
       <span className="capture-status" aria-live="polite" aria-atomic="true">{message}</span>
     </div>

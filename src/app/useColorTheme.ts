@@ -36,13 +36,13 @@ export function useColorTheme() {
       setTemporary(null);
       setNotice("");
     } else {
-      setNotice("색상 테마를 저장하지 못했습니다. 이번 탭에서만 적용됩니다.");
+      setNotice("save-failed");
     }
   }
 
   return {
     theme,
     change,
-    notice: notice || (stored === null ? "저장된 색상 테마를 읽을 수 없습니다." : ""),
+    notice: notice || (stored === null ? "invalid" : ""),
   };
 }

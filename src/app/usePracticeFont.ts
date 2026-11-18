@@ -1,18 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  defaultPracticeFont,
+  defaultPracticeFonts,
   practiceFontKey,
-  readPracticeFont,
+  readPracticeFonts,
+  resetPracticeFonts,
   savePracticeFont,
 } from "../storage/settingsStorage";
-import type { PracticeFont } from "../storage/settingsStorage";
+import type { PracticeFont, PracticeFonts } from "../storage/settingsStorage";
+import type { Language } from "../content/lessons";
 
-export function usePracticeFont() {
-  const [stored, setStored] = useState(readPracticeFont);
-  const [temporary, setTemporary] = useState<PracticeFont | null>(null);
+export function usePracticeFont(language: Language) {
+  const [stored, setStored] = useState<PracticeFonts | null>(readPracticeFonts);
+  const [temporary, setTemporary] = useState<PracticeFonts | null>(null);
   const [notice, setNotice] = useState("");
   const request = useRef(0);
-  const font = temporary ?? stored ?? defaultPracticeFont;
+  const font = (temporary ?? stored ?? defaultPracticeFonts)[language];
 
   useEffect(() => {
     document.documentElement.dataset.practiceFont = font;
@@ -20,7 +22,7 @@ export function usePracticeFont() {
 
   useEffect(() => {
     function sync(event: StorageEvent) {
-      if (event.key === practiceFontKey || event.key === null) setStored(readPracticeFont());
+      if (event.key === practiceFontKey || event.key === null) setStored(readPracticeFonts());
     }
     window.addEventListener("storage", sync);
     return () => window.removeEventListener("storage", sync);
@@ -28,21 +30,37 @@ export function usePracticeFont() {
 
   async function change(nextFont: PracticeFont, reset = false) {
     const version = ++request.current;
-    setTemporary(nextFont);
-    const saved = await savePracticeFont(nextFont, reset);
+    const next = { ...(temporary ?? stored ?? defaultPracticeFonts), [language]: nextFont };
+    setTemporary(next);
+    const saved = await savePracticeFont(nextFont, reset, language);
     if (version !== request.current) return;
     if (saved) {
-      setStored(readPracticeFont());
+      setStored(readPracticeFonts());
       setTemporary(null);
       setNotice("");
     } else {
-      setNotice("연습 글꼴을 저장하지 못했습니다. 이번 탭에서만 적용됩니다.");
+      setNotice("save-failed");
+    }
+  }
+
+  async function resetAll() {
+    const version = ++request.current;
+    setTemporary(defaultPracticeFonts);
+    const saved = await resetPracticeFonts();
+    if (version !== request.current) return;
+    if (saved) {
+      setStored(defaultPracticeFonts);
+      setTemporary(null);
+      setNotice("");
+    } else {
+      setNotice("save-failed");
     }
   }
 
   return {
     font,
     change,
-    notice: notice || (stored === null ? "저장된 연습 글꼴을 읽을 수 없습니다." : ""),
+    resetAll,
+    notice: notice ? "save-failed" : stored === null ? "invalid" : "",
   };
 }

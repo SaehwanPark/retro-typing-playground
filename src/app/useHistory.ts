@@ -26,7 +26,7 @@ export function useHistory(record: PracticeRecord | undefined, acknowledge: (id:
         setNotice("");
       } else {
         setTemporary((previous) => recentRecords([...previous, record]));
-        setNotice("이번 기록은 저장하지 못했습니다. 앱을 닫기 전까지 볼 수 있습니다.");
+        setNotice("history-save-failed");
       }
       acknowledge(record.id);
     });
@@ -35,19 +35,19 @@ export function useHistory(record: PracticeRecord | undefined, acknowledge: (id:
 
   async function reset() {
     if (!await clearHistory()) {
-      setNotice("기록을 지우지 못했습니다. 브라우저의 저장 설정을 확인하세요.");
+      setNotice("history-clear-failed");
       return false;
     }
 
     setSaved(readHistory());
     setTemporary([]);
-    setNotice("최근 연습 기록을 지웠습니다.");
+    setNotice("history-cleared");
     return true;
   }
 
   return {
     records: recentRecords([...saved.records, ...temporary]),
-    notice: notice || (saved.ok ? "" : "저장된 기록을 읽을 수 없습니다. 현재 연습은 계속할 수 있습니다."),
+    notice: notice || (saved.ok ? "" : "history-read-failed"),
     reset,
   };
 }

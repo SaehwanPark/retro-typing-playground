@@ -1,10 +1,11 @@
 import { useRef } from "react";
 import type { KeyboardEvent } from "react";
 import { useFocus } from "./useFocus";
+import type { InterfaceText } from "../content/interfaceText";
 
-type FreePracticeViewProps = { onBack: () => void };
+type FreePracticeViewProps = { onBack: () => void; copy: InterfaceText };
 
-export function FreePracticeView({ onBack }: FreePracticeViewProps) {
+export function FreePracticeView({ onBack, copy }: FreePracticeViewProps) {
   const editor = useFocus<HTMLTextAreaElement>();
   const composing = useRef(false);
   const composingEscapes = useRef(new Set<string>());
@@ -39,9 +40,9 @@ export function FreePracticeView({ onBack }: FreePracticeViewProps) {
       onKeyDown={handleKeyDown}
       onKeyUp={handleKeyUp}
     >
-      <button className="back" type="button" onClick={onBack}>← 메뉴</button>
-      <h1 id="free-practice-title">연습장</h1>
-      <label className="free-practice-label" htmlFor="free-practice-input">원하는 내용을 자유롭게 입력하세요</label>
+      <button className="back" type="button" onClick={onBack}>{copy.backToMenu}</button>
+      <h1 id="free-practice-title">{copy.freePractice}</h1>
+      <label className="free-practice-label" htmlFor="free-practice-input">{copy.freePracticeLabel}</label>
       <textarea
         id="free-practice-input"
         ref={editor}
@@ -56,8 +57,8 @@ export function FreePracticeView({ onBack }: FreePracticeViewProps) {
         onBlur={() => { composingEscapes.current.clear(); }}
       />
       <p className="keys" id="free-practice-hint">
-        <kbd>Enter</kbd> 줄바꿈 <kbd>Esc</kbd> 메뉴
-        <span className="capture-disclosure">화면 저장을 선택하면 입력 내용도 PNG에 포함됩니다.</span>
+        <kbd>Enter</kbd> {copy.newline} <kbd>Esc</kbd> {copy.menu}
+        <span className="capture-disclosure">{copy.captureDisclosure}</span>
       </p>
     </section>
   );

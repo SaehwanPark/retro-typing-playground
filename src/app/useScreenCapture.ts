@@ -4,13 +4,6 @@ import { downloadScreenCapture } from "../ui/screenCapture";
 
 type CaptureStatus = "idle" | "saving" | "saved" | "failed";
 
-const statusMessages: Record<CaptureStatus, string> = {
-  idle: "",
-  saving: "화면 저장 중입니다.",
-  saved: "화면을 PNG로 저장했습니다.",
-  failed: "화면을 저장하지 못했습니다. 다시 시도해 주세요.",
-};
-
 export function useScreenCapture(target: RefObject<HTMLElement | null>) {
   const [status, setStatus] = useState<CaptureStatus>("idle");
   const saving = useRef(false);
@@ -62,7 +55,7 @@ export function useScreenCapture(target: RefObject<HTMLElement | null>) {
 
   return {
     isSaving: status === "saving",
-    message: statusMessages[status],
+    status,
     save,
   };
 }

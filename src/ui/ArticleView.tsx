@@ -2,6 +2,7 @@ import type { ArticleActivity } from "../content/articles";
 import { scoreArticle } from "../domain/articlePractice";
 import type { ArticleSession } from "../domain/articlePractice";
 import { PracticeView } from "./PracticeView";
+import type { InterfaceText } from "../content/interfaceText";
 
 type ArticleViewProps = {
   activity: ArticleActivity;
@@ -9,9 +10,10 @@ type ArticleViewProps = {
   onInput: (input: string, at: number) => void;
   onSubmit: (at: number) => void;
   onBack: () => void;
+  copy: InterfaceText;
 };
 
-export function ArticleView({ activity, session, onInput, onSubmit, onBack }: ArticleViewProps) {
+export function ArticleView({ activity, session, onInput, onSubmit, onBack, copy }: ArticleViewProps) {
   const index = session.lineIndex;
   const target = activity.lines[index];
   if (!target) return null;
@@ -27,12 +29,13 @@ export function ArticleView({ activity, session, onInput, onSubmit, onBack }: Ar
       session={session.line}
       startedAt={session.startedAt}
       scoreAt={(now) => scoreArticle(target, session, now)}
-      backLabel="장문 목록"
+      backLabel={copy.chooseArticle}
+      copy={copy}
       context={
-        <div className="article-progress">
-          <p><strong>현재 줄</strong> {index + 1} / {activity.lines.length}</p>
-          {prior && <p><strong>완료한 줄</strong> {prior}</p>}
-          {next && <p><strong>다음 줄</strong> {next}</p>}
+        <div className="article-progress" lang={activity.language}>
+          <p><strong>{copy.articleCurrentLine}</strong> {index + 1} / {activity.lines.length}</p>
+          {prior && <p><strong>{copy.articleCompletedLine}</strong> {prior}</p>}
+          {next && <p><strong>{copy.articleNextLine}</strong> {next}</p>}
         </div>
       }
       onInput={onInput}

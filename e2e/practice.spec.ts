@@ -65,8 +65,12 @@ test("IME composition and its Enter are processed separately from submission", a
 
 test("arrow navigation selects a language and returns focus to that mode", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("button", { name: "한글 단문" })).toBeFocused();
-  for (let index = 0; index < 3; index += 1) await page.keyboard.press("ArrowDown");
+  await page.getByRole("button", { name: "환경설정" }).click();
+  await page.getByRole("combobox", { name: "연습 언어" }).selectOption("en");
+  await page.getByRole("button", { name: "← 메뉴" }).click();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("button", { name: "영문 단문" })).toBeFocused();
+  await page.keyboard.press("ArrowDown");
   const wordMode = page.getByRole("button", { name: "영문 낱말" });
   await expect(wordMode).toBeFocused();
   await page.keyboard.press("Enter");

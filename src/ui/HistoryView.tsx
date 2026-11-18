@@ -2,17 +2,22 @@ import { useState } from "react";
 import { modeLabels } from "../domain/history";
 import type { PracticeRecord, RecordedMode } from "../domain/history";
 import { useFocus } from "./useFocus";
+import type { InterfaceText } from "../content/interfaceText";
+import type { Language } from "../content/lessons";
 
 type HistoryViewProps = {
   records: readonly PracticeRecord[];
   onClear: () => Promise<boolean>;
   onBack: () => void;
+  copy: InterfaceText;
+  interfaceLanguage: Language;
 };
 
-const dateFormat = new Intl.DateTimeFormat("ko", { dateStyle: "medium", timeStyle: "short" });
-
-export function HistoryView({ records, onClear, onBack }: HistoryViewProps) {
+export function HistoryView({ records, onClear, onBack, copy, interfaceLanguage }: HistoryViewProps) {
   const title = useFocus<HTMLHeadingElement>();
+  const dateFormat = new Intl.DateTimeFormat(interfaceLanguage === "ko" ? "ko" : "en", {
+    dateStyle: "medium", timeStyle: "short",
+  });
   const [filter, setFilter] = useState<RecordedMode | "all">("all");
   const [confirming, setConfirming] = useState(false);
   const [clearing, setClearing] = useState(false);
@@ -35,35 +40,35 @@ export function HistoryView({ records, onClear, onBack }: HistoryViewProps) {
         onBack();
       }
     }}>
-      <button type="button" className="back" onClick={onBack}>← 메뉴</button>
-      <h1 ref={title} tabIndex={-1}>최근 연습 기록</h1>
+      <button type="button" className="back" onClick={onBack}>{copy.backToMenu}</button>
+      <h1 ref={title} tabIndex={-1}>{copy.activityLabel("history", "Recent practice")}</h1>
       <div className="history-toolbar">
-        <label>연습 종류{" "}
+        <label>{copy.practiceKind}{" "}
           <select value={filter} onChange={(event) => setFilter(event.target.value as typeof filter)}>
-            <option value="all">전체</option>
-            {Object.entries(modeLabels).map(([mode, label]) => <option value={mode} key={mode}>{label}</option>)}
+            <option value="all">{copy.all}</option>
+            {Object.keys(modeLabels).map((mode) => <option value={mode} key={mode}>{copy.modeLabel(mode)}</option>)}
           </select>
         </label>
-        <button type="button" className="button secondary" onClick={() => setConfirming(true)}>기록 지우기</button>
+        <button type="button" className="button secondary" onClick={() => setConfirming(true)}>{copy.clearHistory}</button>
       </div>
       {confirming && (
-        <div className="target" aria-label="기록 지우기 확인">
-          <p>이 브라우저에 저장한 연습 기록을 지울까요?</p>
+        <div className="target" aria-label={copy.clearHistory}>
+          <p>{copy.confirmClearHistory}</p>
           <div className="result-actions">
-            <button type="button" className="button" disabled={clearing} onClick={() => void clear()}>전체 기록 지우기</button>
-            <button type="button" className="button secondary" disabled={clearing} onClick={() => setConfirming(false)}>취소</button>
+            <button type="button" className="button" disabled={clearing} onClick={() => void clear()}>{copy.clearAllHistory}</button>
+            <button type="button" className="button secondary" disabled={clearing} onClick={() => setConfirming(false)}>{copy.cancel}</button>
           </div>
         </div>
       )}
-      {visible.length === 0 ? <p className="lede">표시할 연습 기록이 없습니다.</p> : (
+      {visible.length === 0 ? <p className="lede">{copy.noRecords}</p> : (
         <ul className="history-list">
           {visible.map(({ id, mode, language, completedAt, score }) => (
             <li key={id}>
-              <div><strong>{modeLabels[mode]}</strong> · {language === "ko" ? "한글" : "영문"}</div>
+              <div><strong>{copy.modeLabel(mode)}</strong> · {language === "ko" ? copy.korean : copy.english}</div>
               <span>{dateFormat.format(completedAt)}</span>
               <div>
-                {score.accuracy === null ? "—" : `정확도 ${Math.round(score.accuracy)}%`}
-                {score.charactersPerMinute !== null && ` · ${Math.round(score.charactersPerMinute)} 글자/분`}
+                {score.accuracy === null ? "—" : copy.accuracyValue(Math.round(score.accuracy))}
+                {score.charactersPerMinute !== null && ` · ${copy.charactersPerMinute(Math.round(score.charactersPerMinute))}`}
               </div>
             </li>
           ))}
