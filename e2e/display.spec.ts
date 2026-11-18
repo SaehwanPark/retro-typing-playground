@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { settingsKey } from "../src/storage/settingsStorage";
+import { colorThemeKey, settingsKey } from "../src/storage/settingsStorage";
 
 test("text size changes during practice, survives reload, and can be reset", async ({ page }) => {
   await page.goto("/");
@@ -20,4 +20,62 @@ test("text size changes during practice, survives reload, and can be reset", asy
   await page.getByRole("button", { name: "기본 크기로 되돌리기" }).click();
   await expect(input).toHaveCSS("font-size", "21.6px");
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), settingsKey)).toBeNull();
+});
+
+test("color theme changes immediately, survives reload, and resets independently", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "한글 단문" }).click();
+  const input = page.getByRole("textbox", { name: "따라 입력하기" });
+  await input.fill("한글");
+  await page.getByText("표시 설정", { exact: true }).click();
+  await page.getByRole("combobox", { name: "연습 글자 크기" }).selectOption("largest");
+  await page.getByRole("combobox", { name: "색상 테마" }).selectOption("paper");
+
+  await expect(page.locator("html")).toHaveAttribute("data-color-theme", "paper");
+  await expect(page.locator(".shell")).toHaveCSS("background-color", "rgb(255, 253, 248)");
+  await expect(input).toHaveValue("한글");
+  await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), colorThemeKey)).toContain("paper");
+
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-color-theme", "paper");
+  await page.getByRole("button", { name: "한글 단문" }).click();
+  await expect(input).toHaveCSS("font-size", "32px");
+  await page.getByText("표시 설정", { exact: true }).click();
+  await page.getByRole("button", { name: "기본 색상으로 되돌리기" }).click();
+
+  await expect(page.locator("html")).toHaveAttribute("data-color-theme", "terminal");
+  await expect(page.getByRole("combobox", { name: "연습 글자 크기" })).toHaveValue("largest");
+  await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), colorThemeKey)).toBeNull();
+  await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), settingsKey)).toContain("largest");
+});
+
+test("invalid theme data falls back without overwriting it", async ({ page }) => {
+  await page.addInitScript((key) => localStorage.setItem(key, "{invalid"), colorThemeKey);
+  await page.goto("/");
+
+  await expect(page.locator("html")).toHaveAttribute("data-color-theme", "terminal");
+  await page.getByText("표시 설정", { exact: true }).click();
+  await expect(page.getByRole("status")).toHaveText("저장된 색상 테마를 읽을 수 없습니다.");
+  await page.getByRole("combobox", { name: "색상 테마" }).selectOption("paper");
+
+  await expect(page.locator("html")).toHaveAttribute("data-color-theme", "paper");
+  await expect(page.getByRole("status")).toHaveText("색상 테마를 저장하지 못했습니다. 이번 탭에서만 적용됩니다.");
+  await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), colorThemeKey)).toBe("{invalid");
+});
+
+test("a denied theme write applies for this tab and announces the failure", async ({ page }) => {
+  await page.addInitScript((key) => {
+    const originalSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (storageKey, value) {
+      if (storageKey === key) throw new DOMException("Storage is unavailable", "QuotaExceededError");
+      originalSetItem.call(this, storageKey, value);
+    };
+  }, colorThemeKey);
+  await page.goto("/");
+  await page.getByText("표시 설정", { exact: true }).click();
+  await page.getByRole("combobox", { name: "색상 테마" }).selectOption("paper");
+
+  await expect(page.locator("html")).toHaveAttribute("data-color-theme", "paper");
+  await expect(page.getByRole("status")).toHaveText("색상 테마를 저장하지 못했습니다. 이번 탭에서만 적용됩니다.");
+  await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), colorThemeKey)).toBeNull();
 });
