@@ -4,15 +4,19 @@
 
 | 환경 | 확인 범위 | 남은 확인 |
 | --- | --- | --- |
-| Windows 11 · Chrome 157 | 개발 빌드에서 확정된 한글 입력, 100% 정확도, Enter 제출과 재시도, Esc 메뉴 복귀를 확인했다. | Edge는 설치되어 있으나 브라우저 제어에서 현재 URL을 확인하지 못해 중단됐다. Edge와 Microsoft 한국어 IME에서 실제 물리 키의 조합을 확인한다. |
-| Fedora Linux 43 WSL · Chromium | 새 브라우저 문맥의 배포물, 루프백만 허용한 첫 화면과 입력·제출, 합성 조합 이벤트, 기록 보존을 자동으로 확인했다. | Firefox에서 IBus 한글 두벌식의 실제 조합을 확인한다. |
-| macOS · Safari | 현재 실행 환경에 macOS 호스트가 없다. | Safari와 한국어 두벌식에서 실제 조합을 확인한다. |
+| Windows 11 Pro 26300 · Edge 157.0.4341.60 | Edge 확장 연결 후 고정 루프백 주소에서 배포물과 한글 낱말 입력창을 열고 진입 초점을 확인했다. 같은 Windows의 Chrome 157에서 확정된 한글 텍스트로 제출, 재시도, Esc 복귀를 확인했다. | Edge 확장 연결은 동작한다. Windows 창에 실제 키를 보내는 제어 단계는 현재 URL 확인에서 중단됐다. Microsoft 한국어 IME 실제 조합, 200% 확대, 새 프로필 오프라인 완주를 확인한다. |
+| Ubuntu 24.04.5 · Firefox 159 · IBus 1.5.29 / ibus-hangul 1.5.5 | 격리된 X11 데스크톱에서 실제 두벌식 조합, Backspace, Enter 확정과 이후 Enter 제출, Esc 메뉴 초점 복원을 확인했다. 루프백만 연결된 새 프로필에서 시작했고 브라우저 200% 확대와 새로고침한 뒤 기록 보존을 확인했다. | Linux 검증 완료. |
+| macOS · Safari | 현재 실행 환경에 macOS 호스트가 없다. | Safari와 한국어 두벌식에서 아래 절차를 확인한다. |
+
+Chromium과 Firefox는 Fedora WSL에서, WebKit은 격리된 Ubuntu에서 배포물 브라우저 테스트를 각각 10개씩 통과했다. Firefox에서 실제 IBus가 조합 종료 뒤 같은 Enter를 다시 전달하는 동작을 발견하고 키를 뗄 때까지 해당 단축키를 보류하도록 수정했다. [수정 PR](https://github.com/SaehwanPark/retro-typing-playground/pull/8)
 
 ## 환경별 재현 절차
 
 1. Node.js LTS 22.12.0 이상으로 `npm ci`와 `npm run build`를 실행한다. 새로운 브라우저 프로필을 준비한다.
 2. 외부 연결을 끊고 `node serve.mjs`로 앱을 연다. 브라우저에서 `http://127.0.0.1:41793/`의 시작 메뉴가 표시되는지 확인한다.
-3. 한글 낱말을 열어 제시문을 따라 친다. 조합 중에는 현재 입력이 점수와 오타 표시를 바꾸지 않는지, Backspace 후 조합이 자연스럽게 수정되는지 확인한다.
+3. 운영체제의 한국어 두벌식을 활성화하고 한글 낱말을 연다. 영문 키 위치로 `d`, `u`, `s`를 눌러 첫 글자 ‘연’을 조합한다. 조합 중에는 글자 수와 오타 표시가 바뀌지 않는지, Backspace로 ‘여’가 되는지 확인한다. `s`, `v`, `l`, `f`를 눌러 ‘연필’을 완성한다.
 4. 조합을 끝내는 Enter는 현재 글자만 확정하고 다음 Enter는 연습을 제출하는지 확인한다. 결과에서 Enter로 재시도하고 Esc로 직전에 선택한 메뉴로 돌아간다.
 5. 브라우저를 200% 확대해 제시문, 입력창, 주요 버튼을 사용해 본다. 새로고침 뒤 완료 기록이 보존되는지 확인한다.
 6. OS, 브라우저 버전, 입력기 종류, 통과한 단계와 재현 가능한 문제를 A06 PR에 기록한다.
+
+Windows에서는 운영체제의 Microsoft 한국어 IME를 선택하고 오른쪽 Alt로 입력 모드를 확인한다. [Microsoft 한국어 IME](https://learn.microsoft.com/en-us/globalization/input/korean-ime)
