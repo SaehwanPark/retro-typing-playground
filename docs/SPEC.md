@@ -32,6 +32,7 @@
 - [ ] **A06 · Windows 11 + Chrome 기준 환경 확인** [지금 구현중]
   - 로컬 설치·빌드·실행과 Windows 11 Chrome의 한글 연습 흐름을 현재 완료 기준으로 둔다. 실제 Microsoft 한국어 IME 조합, 오프라인 새 프로필, 200% 확대를 확인한다.
   - 2026-11-18 Chrome에서 로컬 앱을 열고 한글 단문을 입력해 100% 정확도를 확인했다. Enter 제출 후 다음 문장과 직전 점수가 표시되고, Esc로 메뉴에 돌아왔다. 이 입력은 브라우저 제어 도구의 텍스트 입력으로 수행했으며 실제 Windows IME 조합 확인으로 간주하지 않는다.
+  - 실제 IME 확인을 위해 네이티브 Chrome 창을 다시 선택해 제어하려 했지만, 컴퓨터 사용 도구가 `failed to activate captured window`를 반환했다. 새 창 목록으로 한 차례 재선택한 뒤에도 같았다. 이는 도구 제어 실패이며 앱의 Chrome 동작 실패를 뜻하지 않는다.
   - Chromium, Firefox, WebKit의 배포물 자동 검증을 마쳤다. Ubuntu Firefox와 실제 IBus 한글 두벌식에서 조합 수정, 두 번의 Enter, Esc 복귀와 브라우저 200% 확대를 확인했다.
   - Windows Edge와 macOS Safari의 호환성 확인은 후속 범위이며 현재 개발의 차단 조건이 아니다. macOS 제공 로그의 `fsevents@2.3.3` 설치 스크립트 경고에 맞춰 lockfile 버전만 허용했다. Linux npm 12 엄격 설치와 빌드는 통과했고, 실제 macOS 설치·Safari 검증은 후속 작업으로 남는다.
   - [환경별 근거와 재현 절차](PLATFORM-VERIFICATION.md) · [현재 기준 환경 Draft PR](https://github.com/SaehwanPark/retro-typing-playground/pull/6)
