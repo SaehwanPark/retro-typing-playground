@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { appPreferencesKey } from "../src/storage/appPreferences";
+import { historyKey } from "../src/storage/historyStorage";
 
 test("settings are reachable by keyboard and return focus to the home entry", async ({ page }) => {
   await page.goto("/");
@@ -44,6 +45,80 @@ test("interface and practice languages are independent and filter home content",
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.locator("html")).toHaveAttribute("data-practice-language", "en");
   await expect(page.getByRole("button", { name: "English words" })).toBeVisible();
+});
+
+test("speed units have language-specific defaults and save independently", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "환경설정" }).click();
+  const koreanUnit = page.getByRole("combobox", { name: "한국어 속도 단위" });
+  const englishUnit = page.getByRole("combobox", { name: "영어 속도 단위" });
+  await expect(koreanUnit).toHaveValue("cpm");
+  await expect(englishUnit).toHaveValue("wpm");
+
+  await koreanUnit.selectOption("wpm");
+  await englishUnit.selectOption("cpm");
+  await expect.poll(() => page.evaluate((key) => {
+    const saved = JSON.parse(localStorage.getItem(key) ?? "null");
+    return [saved?.version, saved?.preferences?.typingSpeedUnits?.ko, saved?.preferences?.typingSpeedUnits?.en];
+  }, appPreferencesKey)).toEqual([2, "wpm", "cpm"]);
+
+  await page.getByRole("button", { name: "환경설정을 기본값으로 되돌리기" }).click();
+  await expect(koreanUnit).toHaveValue("cpm");
+  await expect(englishUnit).toHaveValue("wpm");
+  await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), appPreferencesKey)).toBeNull();
+});
+
+test("A12 preferences migrate and English WPM stays consistent in results and history", async ({ page }) => {
+  await page.addInitScript((key) => {
+    localStorage.setItem(key, JSON.stringify({
+      version: 1,
+      preferences: { interfaceLanguage: "en", practiceLanguage: "en", completionSound: false },
+    }));
+  }, appPreferencesKey);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Settings" }).click();
+  const koreanUnit = page.getByRole("combobox", { name: "Korean speed unit" });
+  const englishUnit = page.getByRole("combobox", { name: "English speed unit" });
+  await expect(koreanUnit).toHaveValue("cpm");
+  await expect(englishUnit).toHaveValue("wpm");
+  await koreanUnit.selectOption("wpm");
+  await expect.poll(() => page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? "null"), appPreferencesKey))
+    .toMatchObject({ version: 2, preferences: { interfaceLanguage: "en", practiceLanguage: "en", completionSound: false, typingSpeedUnits: { ko: "wpm", en: "wpm" } } });
+  await page.getByRole("button", { name: "← Menu" }).click();
+
+  async function completeEnglishWord() {
+    await page.getByRole("button", { name: "English words" }).click();
+    const input = page.getByRole("textbox", { name: "Type the prompt" });
+    const prompt = await page.locator("#typing-target").getAttribute("aria-label");
+    expect(prompt).not.toBeNull();
+    await input.fill(prompt!);
+    await page.waitForTimeout(1_100);
+    await input.press("Enter");
+    await expect(page.getByRole("heading", { name: "Practice complete" })).toBeVisible();
+    const result = page.locator('dl[aria-label="This result"]');
+    await expect(result.locator("dt").nth(1)).toHaveText("Words/min");
+    return result.locator("dd").nth(1).textContent();
+  }
+
+  const firstDisplayedSpeed = await completeEnglishWord();
+  await expect.poll(() => page.evaluate((key) => {
+    const stored = JSON.parse(localStorage.getItem(key) ?? "null");
+    return stored?.records?.length ?? 0;
+  }, historyKey)).toBe(1);
+  const firstRawSpeed = await page.evaluate((key) => {
+    const stored = JSON.parse(localStorage.getItem(key) ?? "null");
+    return stored.records[0].score.charactersPerMinute;
+  }, historyKey);
+  expect(firstDisplayedSpeed).toBe(String(Math.round(firstRawSpeed / 5)));
+
+  await page.getByRole("button", { name: "Return to Menu" }).click();
+  const secondDisplayedSpeed = await completeEnglishWord();
+  await expect(page.locator('dl[aria-label="Previous result"] dt').nth(1)).toHaveText("Words/min");
+  await expect(secondDisplayedSpeed).not.toBeNull();
+  await page.getByRole("button", { name: "Return to Menu" }).click();
+  await page.getByRole("button", { name: "Recent practice" }).click();
+  await expect(page.getByRole("listitem")).toHaveCount(2);
+  await expect(page.getByRole("listitem").first()).toContainText("words/min");
 });
 
 test("completion sound plays only after submitting a practice item", async ({ page }) => {

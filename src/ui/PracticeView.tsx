@@ -4,6 +4,7 @@ import type { Language } from "../content/lessons";
 import type { InterfaceText } from "../content/interfaceText";
 import { calculateTypingScore, splitCharacters } from "../domain/typing";
 import type { PracticeSession, TypingScore } from "../domain/typing";
+import type { TypingSpeedUnit } from "../domain/typingSpeed";
 import { TypingInput } from "./TypingInput";
 import { Scoreboard } from "./Scoreboard";
 
@@ -15,6 +16,7 @@ type PracticeViewProps = {
   previous?: TypingScore | null;
   context?: ReactNode;
   startedAt?: number | null;
+  speedUnit: TypingSpeedUnit;
   scoreAt?: (now: number) => TypingScore;
   backLabel?: string;
   copy: InterfaceText;
@@ -25,7 +27,7 @@ type PracticeViewProps = {
 };
 
 export function PracticeView({
-  title, language, prompt, session, previous, context, startedAt = session.startedAt,
+  title, language, prompt, session, previous, context, startedAt = session.startedAt, speedUnit,
   scoreAt, backLabel, onInput, onSubmit, onFinish, onBack, copy,
 }: PracticeViewProps) {
   const [now, setNow] = useState(() => performance.now());
@@ -86,11 +88,11 @@ export function PracticeView({
         <button type="button" className="button" onClick={submit}>{copy.submit}</button>
       </div>
       <p className="notice" role="status">{notice}</p>
-      <Scoreboard label={copy.currentScore} score={score} copy={copy} />
+      <Scoreboard label={copy.currentScore} score={score} speedUnit={speedUnit} copy={copy} />
       {previous && (
         <section className="previous-score" aria-labelledby="previous-title">
           <h2 id="previous-title">{copy.previousSentence}</h2>
-          <Scoreboard label={copy.previousScore} score={previous} copy={copy} />
+          <Scoreboard label={copy.previousScore} score={previous} speedUnit={speedUnit} copy={copy} />
           <button type="button" className="button secondary" onClick={onFinish}>{copy.finishPractice}</button>
         </section>
       )}

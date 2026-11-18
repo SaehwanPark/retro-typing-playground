@@ -1,4 +1,5 @@
 import type { Language } from "./lessons";
+import type { TypingSpeedUnit } from "../domain/typingSpeed";
 
 export type InterfaceText = Readonly<{
   typingPractice: string;
@@ -15,6 +16,13 @@ export type InterfaceText = Readonly<{
   interfaceLanguage: string;
   practiceLanguage: string;
   practiceLanguageAfterMenu: string;
+  koreanSpeedUnit: string;
+  englishSpeedUnit: string;
+  speedUnitCpm: string;
+  speedUnitWpm: string;
+  speedUnitHelp: string;
+  speedLabel: (unit: TypingSpeedUnit) => string;
+  speedValue: (value: number, unit: TypingSpeedUnit) => string;
   korean: string;
   english: string;
   practiceSize: string;
@@ -49,7 +57,6 @@ export type InterfaceText = Readonly<{
   previousSentence: string;
   previousScore: string;
   accuracy: string;
-  speedCpm: string;
   elapsedTime: string;
   result: string;
   practiceComplete: string;
@@ -73,7 +80,6 @@ export type InterfaceText = Readonly<{
   historyCleared: string;
   historyReadFailed: string;
   accuracyValue: (value: number) => string;
-  charactersPerMinute: (value: number) => string;
   challengeTitle: string;
   challengeInstruction: string;
   challengeStart: string;
@@ -122,6 +128,13 @@ const ko: InterfaceText = {
   interfaceLanguage: "인터페이스 언어",
   practiceLanguage: "연습 언어",
   practiceLanguageAfterMenu: "연습 중에는 현재 내용을 유지합니다. 언어 변경은 메뉴로 돌아간 뒤 적용하세요.",
+  koreanSpeedUnit: "한국어 속도 단위",
+  englishSpeedUnit: "영어 속도 단위",
+  speedUnitCpm: "분당 타수 (CPM)",
+  speedUnitWpm: "분당 단어 수 (WPM)",
+  speedUnitHelp: "WPM은 분당 타수를 5로 나눈 값입니다.",
+  speedLabel: (unit) => unit === "cpm" ? "타수/분" : "단어/분",
+  speedValue: (value, unit) => `${value} ${unit === "cpm" ? "타수/분" : "단어/분"}`,
   korean: "한국어",
   english: "영어",
   practiceSize: "연습 글자 크기",
@@ -156,7 +169,6 @@ const ko: InterfaceText = {
   previousSentence: "직전 문장",
   previousScore: "직전 점수",
   accuracy: "정확도",
-  speedCpm: "타수/분",
   elapsedTime: "경과 시간",
   result: "결과",
   practiceComplete: "연습 완료",
@@ -180,7 +192,6 @@ const ko: InterfaceText = {
   historyCleared: "최근 연습 기록을 지웠습니다.",
   historyReadFailed: "저장된 기록을 읽을 수 없습니다. 현재 연습은 계속할 수 있습니다.",
   accuracyValue: (value) => `정확도 ${value}%`,
-  charactersPerMinute: (value) => `${value} 타수/분`,
   challengeTitle: "30초 낱말 도전",
   challengeInstruction: "한글 낱말을 그대로 입력하고 Enter를 누르세요. 30초 동안 맞힌 낱말 수를 셉니다.",
   challengeStart: "도전 시작",
@@ -242,6 +253,13 @@ const en: InterfaceText = {
   interfaceLanguage: "Interface language",
   practiceLanguage: "Practice language",
   practiceLanguageAfterMenu: "The current practice stays open. Return to the menu to change the practice language.",
+  koreanSpeedUnit: "Korean speed unit",
+  englishSpeedUnit: "English speed unit",
+  speedUnitCpm: "Characters/minute (CPM)",
+  speedUnitWpm: "Words/minute (WPM)",
+  speedUnitHelp: "WPM is calculated by dividing characters per minute by five.",
+  speedLabel: (unit) => unit === "cpm" ? "Characters/min" : "Words/min",
+  speedValue: (value, unit) => `${value} ${unit === "cpm" ? "characters/min" : "words/min"}`,
   korean: "Korean",
   english: "English",
   practiceSize: "Practice text size",
@@ -276,7 +294,6 @@ const en: InterfaceText = {
   previousSentence: "Previous sentence",
   previousScore: "Previous score",
   accuracy: "Accuracy",
-  speedCpm: "Characters/min",
   elapsedTime: "Elapsed time",
   result: "Result",
   practiceComplete: "Practice complete",
@@ -300,7 +317,6 @@ const en: InterfaceText = {
   historyCleared: "Recent practice records were cleared.",
   historyReadFailed: "Saved records could not be read. You can continue practicing.",
   accuracyValue: (value) => `Accuracy ${value}%`,
-  charactersPerMinute: (value) => `${value} characters/min`,
   challengeTitle: "30-second word challenge",
   challengeInstruction: "Type each Korean word and press Enter. Count how many you solve in 30 seconds.",
   challengeStart: "Start challenge",
