@@ -17,6 +17,7 @@ button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--amber); outline-offset: 4px; }
 
 .shell {
+  --typing-size: 1.35rem;
   width: min(56rem, calc(100% - 2rem));
   margin: clamp(1rem, 9vh, 7rem) auto;
   border: 1px solid var(--line);
@@ -25,6 +26,8 @@ button { cursor: pointer; }
   background: #1a1e1c;
   box-shadow: 0 1rem 4rem #090b0980;
 }
+.shell[data-text-size="large"] { --typing-size: 1.65rem; }
+.shell[data-text-size="largest"] { --typing-size: 2rem; }
 
 .masthead, .target-label, .practice-actions {
   display: flex;
@@ -41,14 +44,27 @@ button { cursor: pointer; }
 }
 
 .brand > span { color: var(--amber); margin-inline-end: .3rem; }
-.local-status { color: var(--quiet); }
-.local-status > span {
-  display: inline-block;
-  background: #9ccd9f;
-  inline-size: .45rem;
-  block-size: .45rem;
-  border-radius: 50%;
-  vertical-align: .14em;
+.display-settings { position: relative; font-family: system-ui, sans-serif; }
+.display-settings summary { cursor: pointer; color: var(--amber); padding: .3rem 0; }
+.settings-panel {
+  position: absolute;
+  z-index: 1;
+  inset-inline-end: 0;
+  margin-top: .4rem;
+  display: grid;
+  gap: .75rem;
+  width: max-content;
+  max-width: calc(100vw - 5rem);
+  padding: .8rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: .25rem;
+  box-shadow: 0 .5rem 1.5rem #090b0980;
+}
+.settings-panel label { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+.settings-panel select { padding: .35rem .5rem; }
+@media (max-width: 27rem) {
+  .settings-panel { position: static; }
 }
 
 .screen { padding: clamp(1rem, 5vw, 3rem); }
@@ -100,7 +116,7 @@ h1 { margin: 0; font-size: clamp(1.55rem, 4vw, 2.55rem); line-height: 1.25; }
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
-.target p, .entry input { font-size: 1.35rem; }
+.target p, .entry input { font-size: var(--typing-size); }
 .target .current { border-bottom: 2px solid var(--amber); }
 .target .correct { color: #afe2b0; text-decoration: underline; }
 .target .wrong { color: #ffada6; text-decoration: underline wavy; }
@@ -157,6 +173,7 @@ kbd:not(:first-child) { margin-inline-start: .55rem; }
 .article-progress { color: var(--quiet); margin: 1rem 0; font-size: .9rem; }
 .article-progress p { margin: .45rem 0; line-height: 1.45; overflow-wrap: anywhere; }
 .article-progress strong { color: #eee0cb; margin-inline-end: .3rem; }
+.article-progress p { font-size: calc(var(--typing-size) * .72); }
 .keyboard-rows { display: grid; gap: .35rem; margin-top: 1rem; }
 .keyboard-row { display: flex; justify-content: center; gap: .25rem; }
 .keyboard-row kbd {
