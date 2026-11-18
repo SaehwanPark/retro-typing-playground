@@ -9,6 +9,13 @@
 - 선행 작업과 완료 조건이 정해진 다음 한 항목에 [바로 다음에 구현해야 함]을 붙인다.
 - 플랫폼 검증의 미확인 항목은 별도의 비차단 후속으로 관리한다. Windows 11 + Chrome의 기본 흐름을 막는 치명적 문제가 재현된 경우에만 현재 개발을 멈춘다.
 
+## 진행 중
+
+- [ ] **A17 · macOS IME 공백 중복과 연습 화면 컨트롤 정렬** · [지금 구현중]
+  - 이슈 [#23](https://github.com/SaehwanPark/retro-typing-playground/issues/23): macOS Tahoe + Chrome에서 기본 한국어 입력기의 조합 확정 Space가 입력에 공백 두 칸을 남기는 문제를 해결한다. 조합 확정 Space는 입력을 이어갈 때 구분 공백 한 칸만 추가하고, 완료 입력에서는 한 번만 제출한다.
+  - 이슈 [#24](https://github.com/SaehwanPark/retro-typing-playground/issues/24): 연습 화면 상단의 환경설정과 화면 저장 버튼을 같은 수직 기준선에 맞춘다.
+  - 완료 조건: macOS Chrome 157의 OS 기본 두벌식 IME 조합 입력에서 공백 하나와 단일 제출을 확인하고, Windows Chrome 기준 동작을 유지한다. 두 상단 버튼의 수직 정렬을 연습 화면에서 확인한다. 설치와 프로덕션 빌드를 확인하고 플랫폼 증거를 기록한다.
+
 ## 완료
 
 - [x] **A01 · 로컬 한글 단문 연습** · v0.0.1
