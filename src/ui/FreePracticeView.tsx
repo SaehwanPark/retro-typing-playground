@@ -55,7 +55,10 @@ export function FreePracticeView({ onBack }: FreePracticeViewProps) {
         onCompositionEnd={() => { composing.current = false; }}
         onBlur={() => { composingEscapes.current.clear(); }}
       />
-      <p className="keys" id="free-practice-hint"><kbd>Enter</kbd> 줄바꿈 <kbd>Esc</kbd> 메뉴</p>
+      <p className="keys" id="free-practice-hint">
+        <kbd>Enter</kbd> 줄바꿈 <kbd>Esc</kbd> 메뉴
+        <span className="capture-disclosure">화면 저장을 선택하면 입력 내용도 PNG에 포함됩니다.</span>
+      </p>
     </section>
   );
 }

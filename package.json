@@ -1,6 +1,6 @@
 {
   "name": "retro-typing-playground",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "private": true,
   "type": "module",
   "engines": {
@@ -16,6 +16,7 @@
     "verify": "npm run test && npm run build && npm run test:e2e"
   },
   "dependencies": {
+    "html-to-image": "^1.11.13",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
