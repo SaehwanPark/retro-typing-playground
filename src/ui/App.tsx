@@ -1,11 +1,13 @@
 import { completionTime, historyEntry, usePracticeState } from "../app/usePractice";
 import { useHistory } from "../app/useHistory";
+import { useTextSize } from "../app/useTextSize";
 import { activities } from "../content/lessons";
 import { articles, libraryEntry } from "../content/articles";
 import { splitCharacters } from "../domain/typing";
 import { comparableRecord } from "../domain/history";
 import { ActivityMenu } from "./ActivityMenu";
 import { ArticleView } from "./ArticleView";
+import { DisplaySettings } from "./DisplaySettings";
 import { HistoryView } from "./HistoryView";
 import { PositionView } from "./PositionView";
 import { PracticeView } from "./PracticeView";
@@ -24,15 +26,16 @@ const articleList = articles.map((article) => ({
 export function App() {
   const { state, pending, latest, dispatch, acknowledge } = usePracticeState();
   const history = useHistory(pending, acknowledge);
+  const textSize = useTextSize();
   const back = () => dispatch({ type: "return-to-menu" });
   const onInput = (input: string, at: number) => dispatch({ type: "input-changed", input, at });
   const onSubmit = (at: number) => dispatch({ type: "submit", ...completionTime(at) });
 
   return (
-    <main className="shell">
+    <main className="shell" data-text-size={textSize.size}>
       <header className="masthead">
         <span className="brand"><span aria-hidden="true">▰</span> Retro Typing Playground</span>
-        <span className="local-status"><span aria-hidden="true" /> 로컬 연습</span>
+        <DisplaySettings size={textSize.size} onChange={textSize.change} notice={textSize.notice} />
       </header>
 
       {state.screen === "menu" && (
