@@ -31,6 +31,7 @@
 
 - [ ] **A06 · Windows 11 + Chrome 기준 환경 확인** [지금 구현중]
   - 로컬 설치·빌드·실행과 Windows 11 Chrome의 한글 연습 흐름을 현재 완료 기준으로 둔다. 실제 Microsoft 한국어 IME 조합, 오프라인 새 프로필, 200% 확대를 확인한다.
+  - 2026-11-18 Windows 11 호스트에서 Node 26.13.0 / npm 12.2.0으로 임시 작업 복사본의 엄격한 `npm ci`와 `npm run build`를 통과했다. `node serve.mjs` 실행 후 PowerShell 요청에서 앱 HTML의 HTTP 200 응답을 받았다. 이 결과는 Windows 설치·빌드·서버 실행을 확인하며 Chrome UI와 실제 IME 확인을 대신하지 않는다.
   - 2026-11-18 Chrome에서 로컬 앱을 열고 한글 단문을 입력해 100% 정확도를 확인했다. Enter 제출 후 다음 문장과 직전 점수가 표시되고, Esc로 메뉴에 돌아왔다. 이 입력은 브라우저 제어 도구의 텍스트 입력으로 수행했으며 실제 Windows IME 조합 확인으로 간주하지 않는다.
   - 실제 IME 확인을 위해 네이티브 Chrome 창을 다시 선택해 제어하려 했지만, 컴퓨터 사용 도구가 `failed to activate captured window`를 반환했다. 새 창 목록으로 한 차례 재선택한 뒤에도 같았다. 이는 도구 제어 실패이며 앱의 Chrome 동작 실패를 뜻하지 않는다.
   - Chromium, Firefox, WebKit의 배포물 자동 검증을 마쳤다. Ubuntu Firefox와 실제 IBus 한글 두벌식에서 조합 수정, 두 번의 Enter, Esc 복귀와 브라우저 200% 확대를 확인했다.
