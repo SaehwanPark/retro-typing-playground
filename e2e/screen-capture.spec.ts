@@ -22,6 +22,38 @@ test("the screen button downloads the current screen as PNG", async ({ page }) =
   await expect(page.locator(".capture-status")).toHaveText("화면을 PNG로 저장했습니다.");
 });
 
+test("the downloaded PNG uses the active color theme background", async ({ page }) => {
+  await page.goto("/");
+  await page.getByText("표시 설정", { exact: true }).click();
+  await page.getByRole("combobox", { name: "색상 테마" }).selectOption("paper");
+  const expectedBackground = await page.locator(".shell").evaluate((root) => getComputedStyle(root).backgroundColor);
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: /화면 저장/ }).click();
+  const download = await downloadPromise;
+  const path = await download.path();
+  expect(path).not.toBeNull();
+  const image = await readFile(path!);
+  const pixel = await page.evaluate(async (dataUrl) => {
+    const rendered = new Image();
+    rendered.src = dataUrl;
+    await rendered.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = rendered.naturalWidth;
+    canvas.height = rendered.naturalHeight;
+    const context = canvas.getContext("2d");
+    if (context === null) throw new Error("Canvas context is unavailable.");
+    context.drawImage(rendered, 0, 0);
+    const x = Math.max(0, rendered.naturalWidth - 10);
+    const y = Math.floor(rendered.naturalHeight / 2);
+    return Array.from(context.getImageData(x, y, 1, 1).data);
+  }, `data:image/png;base64,${image.toString("base64")}`);
+  const expectedPixel = expectedBackground.match(/[\d.]+/g)?.map(Number).slice(0, 3);
+
+  expect(expectedPixel).toEqual([255, 253, 248]);
+  expect(pixel).toEqual([...expectedPixel!, 255]);
+});
+
 test("Ctrl+S downloads the current screen while free practice text remains in the editor", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "연습장" }).click();

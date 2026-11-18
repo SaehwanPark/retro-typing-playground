@@ -3,7 +3,7 @@ import { toBlob } from "html-to-image";
 export async function downloadScreenCapture(root: HTMLElement, capturedAt = new Date()): Promise<void> {
   const image = await toBlob(root, {
     pixelRatio: 2,
-    backgroundColor: "#151918",
+    backgroundColor: getComputedStyle(root).backgroundColor,
     filter: (node) => node.getAttribute?.("data-capture-ignore") !== "true",
     style: { margin: "0" },
   });
