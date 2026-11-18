@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import {
   challengeEntry,
   completionTime,
@@ -7,6 +8,7 @@ import {
 } from "../app/usePractice";
 import { useHistory } from "../app/useHistory";
 import { useTextSize } from "../app/useTextSize";
+import { useScreenCapture } from "../app/useScreenCapture";
 import { activities } from "../content/lessons";
 import { articles, libraryEntry } from "../content/articles";
 import { splitCharacters } from "../domain/typing";
@@ -20,6 +22,7 @@ import { FreePracticeView } from "./FreePracticeView";
 import { PositionView } from "./PositionView";
 import { PracticeView } from "./PracticeView";
 import { ResultView } from "./ResultView";
+import { ScreenCaptureControl } from "./ScreenCaptureControl";
 
 const mainActivities = [
   ...activities,
@@ -34,18 +37,27 @@ const articleList = articles.map((article) => ({
 }));
 
 export function App() {
+  const shell = useRef<HTMLElement>(null);
   const { state, pending, latest, dispatch, acknowledge } = usePracticeState();
   const history = useHistory(pending, acknowledge);
   const textSize = useTextSize();
+  const screenCapture = useScreenCapture(shell);
   const back = () => dispatch({ type: "return-to-menu" });
   const onInput = (input: string, at: number) => dispatch({ type: "input-changed", input, at });
   const onSubmit = (at: number) => dispatch({ type: "submit", ...completionTime(at) });
 
   return (
-    <main className="shell" data-text-size={textSize.size}>
+    <main ref={shell} className="shell" data-text-size={textSize.size}>
       <header className="masthead">
         <span className="brand"><span aria-hidden="true">▰</span> Retro Typing Playground</span>
-        <DisplaySettings size={textSize.size} onChange={textSize.change} notice={textSize.notice} />
+        <div className="masthead-actions">
+          <ScreenCaptureControl
+            isSaving={screenCapture.isSaving}
+            message={screenCapture.message}
+            onSave={() => { void screenCapture.save(); }}
+          />
+          <DisplaySettings size={textSize.size} onChange={textSize.change} notice={textSize.notice} />
+        </div>
       </header>
 
       {state.screen === "menu" && (

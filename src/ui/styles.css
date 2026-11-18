@@ -43,6 +43,13 @@ button { cursor: pointer; }
   font: 600 .85rem/1.5 var(--mono);
 }
 
+.masthead-actions { display: flex; align-items: center; justify-content: flex-end; gap: .8rem; flex-wrap: wrap; }
+.screen-capture-control { display: grid; justify-items: end; gap: .2rem; }
+.capture-button { padding: .35rem .6rem; font-size: .8rem; }
+.capture-button kbd { margin-inline-start: .25rem; }
+.capture-status { min-height: 1em; color: var(--amber); font-size: .75rem; }
+.capture-disclosure { display: block; margin-top: .4rem; }
+
 .brand > span { color: var(--amber); margin-inline-end: .3rem; }
 .display-settings { position: relative; font-family: system-ui, sans-serif; }
 .display-settings summary { cursor: pointer; color: var(--amber); padding: .3rem 0; }
