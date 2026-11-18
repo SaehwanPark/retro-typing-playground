@@ -5,6 +5,7 @@
 | 환경 | 확인한 내용 | 남은 확인 |
 | --- | --- | --- |
 | **Windows 11 · Chrome (현재 기준)** | Windows 호스트 Node 26.13.0 / npm 12.2.0에서 엄격한 `npm ci`, `npm run build`, `node serve.mjs`와 루프백 HTTP 200을 확인했다. Chrome의 기본 한글 연습, 다음 문장, 점수와 메뉴 복귀도 확인했다. 2026-11-18 사용자 수동 감사에서 실제 Microsoft 한국어 IME 조합, Backspace 수정, 조합 확정 Enter와 제출 Enter 구분, 새 프로필의 오프라인 연습, 200% 확대, A10 테마와 A11 글꼴을 모두 정상 확인했다고 보고했다. 자동화와 확장 입력은 실제 OS 입력기를 대신하지 않는다. | A15의 조합 확정 Space가 남은 입력에 공백을 넣거나 완료 입력을 제출하는 동작은 합성 IME E2E에서 확인했다. A15 변경 후 실제 Microsoft IME를 사용한 사용자 수동 확인은 아직 하지 않았다. Windows Edge와 macOS Safari는 별도의 후속 호환성 범위다. |
+| macOS Tahoe · Chrome 157 (후속) | 이슈 #23에 보고된 사전 수정 재현: 기본 한국어 두벌식 입력기에서 조합 중 Space를 누르면 두 칸 공백이 남는다. CUA로 Chrome 화면과 컨트롤 정렬은 확인했다. CUA 키 입력은 조합 음절 대신 분리된 한글 자모를 입력해 실제 입력기 동작을 검증하지 못했다. | A17 수정 후 실제 OS 한국어 IME로 조합 확정 Space의 공백 하나 삽입과 완료 입력 단일 제출을 확인한다. 이 환경은 현재 기준이 아니다. |
 | Windows 11 · Edge (후속) | 확장 탭에서 로컬 배포물과 연습 입력창을 열었다. | Edge 호환성은 현재 기준이 아니다. |
 | macOS · Safari (후속) | 실제 macOS 런타임 검증 전. 사용자 로그에서 npm 12.2.0 `npm ci`는 완료됐지만 잠금 파일의 macOS 전용 선택 의존성 `fsevents@2.3.3` 설치 스크립트가 차단됐다는 경고가 있었다. 프로젝트는 이 잠긴 버전만 `allowScripts`에서 승인한다. | macOS 설치·빌드와 Safari·한국어 IME 호환성. 승인 설정은 경고 원인을 다루며 macOS 앱 검증을 뜻하지 않는다. |
 | Ubuntu · Firefox · IBus 한글 두벌식 (보조) | 실제 조합, Backspace, 조합 확정과 제출용 Enter, Esc 메뉴 복귀, 브라우저 200% 확대를 확인했다. Chromium·Firefox·WebKit 배포물 자동 확인도 마쳤다. | 보조 환경 증거로 유지한다. |
