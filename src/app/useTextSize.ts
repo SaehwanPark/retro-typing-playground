@@ -26,13 +26,13 @@ export function useTextSize() {
       setTemporary(null);
       setNotice("");
     } else {
-      setNotice("글자 크기를 저장하지 못했습니다. 이번 페이지에서만 적용됩니다.");
+      setNotice("save-failed");
     }
   }
 
   return {
     size: temporary ?? stored ?? defaultSize,
     change,
-    notice: notice || (stored === null ? "저장된 글자 크기를 읽을 수 없습니다." : ""),
+    notice: notice || (stored === null ? "invalid" : ""),
   };
 }

@@ -12,16 +12,20 @@ async function finishWord(page: Page, mode: string, word: string) {
 }
 
 test("simultaneous completions persist across tabs and can be compared and cleared", async ({ page, context }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "환경설정" }).click();
+  await page.getByRole("combobox", { name: "연습 언어" }).selectOption("en");
+  await page.getByRole("button", { name: "← 메뉴" }).click();
   const other = await context.newPage();
   await Promise.all([
-    finishWord(page, "한글 낱말", "연필"),
+    finishWord(page, "영문 낱말", "orchard"),
     finishWord(other, "영문 낱말", "orchard"),
   ]);
   await expect.poll(async () => await page.evaluate((key) => {
     const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw).records.length : 0;
   }, historyKey)).toBe(2);
-  await finishWord(page, "한글 낱말", "연필");
+  await finishWord(page, "영문 낱말", "orchard");
   await expect(page.getByRole("heading", { name: "같은 모드의 이전 기록" })).toBeVisible();
   await page.getByRole("button", { name: "메뉴로 돌아가기" }).click();
   await page.getByRole("button", { name: "최근 연습 기록" }).click();

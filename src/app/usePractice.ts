@@ -13,8 +13,9 @@ import type { PracticeRecord } from "../domain/history";
 export const historyEntry = { id: "history", label: "최근 연습 기록", kind: "history" } as const;
 export const challengeEntry = { id: "challenge", label: "30초 낱말 도전", kind: "challenge" } as const;
 export const freePracticeEntry = { id: "free-practice", label: "연습장", kind: "free-practice" } as const;
+export const settingsEntry = { id: "settings", label: "환경설정", kind: "settings" } as const;
 
-export type PracticeState =
+export type PracticeContentState =
   | { screen: "menu"; selected: string | null }
   | { screen: "library"; selected: string | null }
   | { screen: "history" }
@@ -33,11 +34,17 @@ export type PracticeState =
   | { screen: "article"; activity: ArticleActivity; session: ArticleSession }
   | { screen: "result"; activity: Activity | ArticleActivity; score: TypingScore };
 
+export type PracticeState =
+  | PracticeContentState
+  | { screen: "settings"; returnState: PracticeContentState };
+
 type CompletionTime = { id: string; completedAt: number; at: number };
 export type AppAction =
   | { type: "start"; activity: Activity | ArticleActivity }
   | { type: "open-library" }
   | { type: "open-history" }
+  | { type: "open-settings" }
+  | { type: "close-settings" }
   | { type: "open-challenge" }
   | { type: "open-free-practice" }
   | { type: "input-changed"; input: string; at: number }
@@ -109,6 +116,11 @@ function reduceArticlePractice(state: Extract<PracticeState, { screen: "article"
 }
 
 export function reducePracticeState(state: PracticeState, action: AppAction): PracticeState {
+  if (action.type === "open-settings") {
+    if (state.screen === "settings") return state;
+    const returnState = state.screen === "menu" ? { ...state, selected: settingsEntry.id } : state;
+    return { screen: "settings", returnState };
+  }
   if (action.type === "open-library") return { screen: "library", selected: null };
   if (action.type === "open-history") return { screen: "history" };
   if (action.type === "open-challenge") return { screen: "challenge" };
@@ -120,6 +132,9 @@ export function reducePracticeState(state: PracticeState, action: AppAction): Pr
   }
   if (state.screen === "history") {
     return action.type === "return-to-menu" ? { screen: "menu", selected: historyEntry.id } : state;
+  }
+  if (state.screen === "settings") {
+    return action.type === "close-settings" ? state.returnState : state;
   }
   if (state.screen === "challenge") {
     return action.type === "return-to-menu" ? { screen: "menu", selected: challengeEntry.id } : state;

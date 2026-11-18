@@ -7,6 +7,7 @@ import {
   readColorTheme,
   readPracticeFont,
 } from "./storage/settingsStorage";
+import { readAppPreferences } from "./storage/appPreferences";
 import "./ui/styles.css";
 
 const rootElement = document.getElementById("root");
@@ -16,7 +17,10 @@ if (rootElement === null) {
 }
 
 document.documentElement.dataset.colorTheme = readColorTheme() ?? defaultColorTheme;
-document.documentElement.dataset.practiceFont = readPracticeFont() ?? defaultPracticeFont;
+const appPreferences = readAppPreferences().value;
+document.documentElement.dataset.practiceLanguage = appPreferences.practiceLanguage;
+document.documentElement.lang = appPreferences.interfaceLanguage;
+document.documentElement.dataset.practiceFont = readPracticeFont(appPreferences.practiceLanguage) ?? defaultPracticeFont;
 
 createRoot(rootElement).render(
   <React.StrictMode>

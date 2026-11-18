@@ -24,7 +24,7 @@ test("the screen button downloads the current screen as PNG", async ({ page }) =
 
 test("the downloaded PNG uses the active color theme background", async ({ page }) => {
   await page.goto("/");
-  await page.getByText("표시 설정", { exact: true }).click();
+  await page.getByRole("button", { name: "환경설정" }).click();
   await page.getByRole("combobox", { name: "색상 테마" }).selectOption("paper");
   const expectedBackground = await page.locator(".shell").evaluate((root) => getComputedStyle(root).backgroundColor);
 
@@ -96,6 +96,6 @@ test("the app announces a PNG encoding failure and remains usable", async ({ pag
   const save = page.getByRole("button", { name: /화면 저장/ });
   await save.click();
 
-  await expect(page.locator(".capture-status")).toHaveText("화면을 저장하지 못했습니다. 다시 시도해 주세요.");
+  await expect(page.locator(".capture-status")).toHaveText("화면을 저장하지 못했습니다. 다시 시도하세요.");
   await expect(save).toBeEnabled();
 });

@@ -24,6 +24,7 @@
 }
 
 :root[data-practice-font="serif"] { --practice-font: "Batang", "Times New Roman", serif; }
+:root[data-practice-language="en"][data-practice-font="serif"] { --practice-font: Georgia, "Times New Roman", serif; }
 
 :root[data-color-theme="paper"] {
   color-scheme: light;
@@ -92,28 +93,19 @@ select {
 .capture-disclosure { display: block; margin-top: .4rem; }
 
 .brand > span { color: var(--accent); margin-inline-end: .3rem; }
-.display-settings { position: relative; font-family: system-ui, sans-serif; }
-.display-settings summary { cursor: pointer; color: var(--accent); padding: .3rem 0; }
 .settings-panel {
-  position: absolute;
-  z-index: 1;
-  inset-inline-end: 0;
-  margin-top: .4rem;
   display: grid;
   gap: .75rem;
-  width: max-content;
-  max-width: calc(100vw - 5rem);
   padding: .8rem;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: .25rem;
-  box-shadow: 0 .5rem 1.5rem var(--shadow);
 }
-.settings-panel label { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
-.settings-panel select { padding: .35rem .5rem; }
-@media (max-width: 27rem) {
-  .settings-panel { position: static; }
-}
+.settings-page { width: min(100%, 36rem); margin-top: 1.25rem; }
+.settings-page label { display: grid; gap: .35rem; }
+.settings-page label small { color: var(--quiet); line-height: 1.45; }
+.settings-panel select { width: min(100%, 24rem); min-height: 2.5rem; padding: .35rem .5rem; }
+.settings-page .button { width: fit-content; }
 
 .screen { padding: clamp(1rem, 5vw, 3rem); }
 h1 { margin: 0; font-size: clamp(1.55rem, 4vw, 2.55rem); line-height: 1.25; }

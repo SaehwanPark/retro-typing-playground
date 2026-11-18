@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { KeyboardEvent } from "react";
+import type { InterfaceText } from "../content/interfaceText";
 type MenuEntry = { id: string; label: string; detail?: string };
 
 type ActivityMenuProps<Entry extends MenuEntry> = {
@@ -8,10 +9,11 @@ type ActivityMenuProps<Entry extends MenuEntry> = {
   selected: string | null;
   onStart: (activity: Entry) => void;
   onBack?: () => void;
+  copy: InterfaceText;
 };
 
 export function ActivityMenu<Entry extends MenuEntry>({
-  activities, title, selected, onStart, onBack,
+  activities, title, selected, onStart, onBack, copy,
 }: ActivityMenuProps<Entry>) {
   const list = useRef<HTMLDivElement>(null);
 
@@ -36,7 +38,7 @@ export function ActivityMenu<Entry extends MenuEntry>({
     <section className="screen" onKeyDown={(event) => {
       if (event.key === "Escape" && !event.nativeEvent.isComposing) onBack?.();
     }}>
-      {onBack && <button className="back" type="button" onClick={onBack}>← 메뉴</button>}
+      {onBack && <button className="back" type="button" onClick={onBack}>{copy.backToMenu}</button>}
       <h1>{title}</h1>
       <div className="activity-menu" ref={list} onKeyDown={moveFocus}>
         {activities.map((activity) => (
@@ -52,7 +54,7 @@ export function ActivityMenu<Entry extends MenuEntry>({
           </button>
         ))}
       </div>
-      <p className="keys"><kbd>↑</kbd> <kbd>↓</kbd> 선택 <kbd>Enter</kbd> 시작</p>
+      <p className="keys"><kbd>↑</kbd> <kbd>↓</kbd> {copy.select} <kbd>Enter</kbd> {copy.start}</p>
     </section>
   );
 }
