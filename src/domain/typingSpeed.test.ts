@@ -7,9 +7,11 @@ describe("typing speed units", () => {
   });
 
   it("converts the raw CPM score to WPM only for display", () => {
-    expect(toDisplayedTypingSpeed(150, "cpm")).toBe(150);
-    expect(toDisplayedTypingSpeed(150, "wpm")).toBe(30);
-    expect(toDisplayedTypingSpeed(null, "wpm")).toBeNull();
+    expect(toDisplayedTypingSpeed(150, null, "en", "cpm")).toBe(150);
+    expect(toDisplayedTypingSpeed(150, null, "en", "wpm")).toBe(30);
+    expect(toDisplayedTypingSpeed(null, 300, "ko", "cpm")).toBe(300);
+    expect(toDisplayedTypingSpeed(null, 300, "ko", "wpm")).toBe(60);
+    expect(toDisplayedTypingSpeed(null, null, "ko", "wpm")).toBeNull();
   });
 
   it("accepts only supported speed units", () => {

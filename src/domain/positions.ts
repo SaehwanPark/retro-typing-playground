@@ -45,5 +45,7 @@ export function scorePositions(session: PositionSession, at: number): TypingScor
     typedCount: session.attempts,
     elapsedMs: session.startedAt === null ? null : Math.max(0, at - session.startedAt),
     charactersPerMinute: null,
+    keystrokeCount: null,
+    keystrokesPerMinute: null,
   };
 }

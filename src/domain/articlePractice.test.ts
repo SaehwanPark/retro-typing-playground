@@ -17,7 +17,9 @@ it("sums finalized lines and includes time spent between lines", () => {
       typedCount: 5,
       elapsedMs: 6_000,
       accuracy: 60,
-      charactersPerMinute: 30,
+      charactersPerMinute: null,
+      keystrokeCount: 13,
+      keystrokesPerMinute: 130,
     },
   });
 });

@@ -14,8 +14,11 @@ export function isTypingSpeedUnit(value: unknown): value is TypingSpeedUnit {
 
 export function toDisplayedTypingSpeed(
   charactersPerMinute: number | null,
+  keystrokesPerMinute: number | null,
+  language: Language,
   unit: TypingSpeedUnit,
 ): number | null {
-  if (charactersPerMinute === null) return null;
-  return unit === "wpm" ? charactersPerMinute / 5 : charactersPerMinute;
+  const rate = language === "ko" ? keystrokesPerMinute : charactersPerMinute;
+  if (rate === null) return null;
+  return unit === "wpm" ? rate / 5 : rate;
 }

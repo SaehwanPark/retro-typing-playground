@@ -9,7 +9,15 @@ it("deduplicates sessions and keeps the newest 100", () => {
     completedAt: index,
     mode: "sentence",
     language: "ko",
-    score: { accuracy: 100, correctCount: 1, typedCount: 1, elapsedMs: 1_000, charactersPerMinute: 60 },
+    score: {
+      accuracy: 100,
+      correctCount: 1,
+      typedCount: 1,
+      elapsedMs: 1_000,
+      charactersPerMinute: null,
+      keystrokeCount: 1,
+      keystrokesPerMinute: 60,
+    },
   }));
   const ordered = recentRecords([...records, records[100]!]);
   expect(ordered).toHaveLength(100);

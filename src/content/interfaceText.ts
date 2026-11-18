@@ -18,11 +18,11 @@ export type InterfaceText = Readonly<{
   practiceLanguageAfterMenu: string;
   koreanSpeedUnit: string;
   englishSpeedUnit: string;
-  speedUnitCpm: string;
+  speedUnitCpm: (language: Language) => string;
   speedUnitWpm: string;
   speedUnitHelp: string;
-  speedLabel: (unit: TypingSpeedUnit) => string;
-  speedValue: (value: number, unit: TypingSpeedUnit) => string;
+  speedLabel: (unit: TypingSpeedUnit, language: Language) => string;
+  speedValue: (value: number, unit: TypingSpeedUnit, language: Language) => string;
   korean: string;
   english: string;
   practiceSize: string;
@@ -131,11 +131,11 @@ const ko: InterfaceText = {
   practiceLanguageAfterMenu: "연습 중에는 현재 내용을 유지합니다. 언어 변경은 메뉴로 돌아간 뒤 적용하세요.",
   koreanSpeedUnit: "한국어 속도 단위",
   englishSpeedUnit: "영어 속도 단위",
-  speedUnitCpm: "분당 타수 (CPM)",
+  speedUnitCpm: (language) => language === "ko" ? "분당 타수 (CPM)" : "분당 글자 수 (CPM)",
   speedUnitWpm: "분당 단어 수 (WPM)",
   speedUnitHelp: "WPM은 분당 타수를 5로 나눈 값입니다.",
-  speedLabel: (unit) => unit === "cpm" ? "타수/분" : "단어/분",
-  speedValue: (value, unit) => `${value} ${unit === "cpm" ? "타수/분" : "단어/분"}`,
+  speedLabel: (unit, language) => unit === "wpm" ? "단어/분" : language === "ko" ? "타수/분" : "글자/분",
+  speedValue: (value, unit, language) => String(value) + " " + (unit === "wpm" ? "단어/분" : language === "ko" ? "타수/분" : "글자/분"),
   korean: "한국어",
   english: "영어",
   practiceSize: "연습 글자 크기",
@@ -257,11 +257,11 @@ const en: InterfaceText = {
   practiceLanguageAfterMenu: "The current practice stays open. Return to the menu to change the practice language.",
   koreanSpeedUnit: "Korean speed unit",
   englishSpeedUnit: "English speed unit",
-  speedUnitCpm: "Characters/minute (CPM)",
+  speedUnitCpm: (language) => language === "ko" ? "Keystrokes/minute (CPM)" : "Characters/minute (CPM)",
   speedUnitWpm: "Words/minute (WPM)",
-  speedUnitHelp: "WPM is calculated by dividing characters per minute by five.",
-  speedLabel: (unit) => unit === "cpm" ? "Characters/min" : "Words/min",
-  speedValue: (value, unit) => `${value} ${unit === "cpm" ? "characters/min" : "words/min"}`,
+  speedUnitHelp: "WPM is calculated by dividing CPM by five.",
+  speedLabel: (unit, language) => unit === "wpm" ? "Words/min" : language === "ko" ? "Keystrokes/min" : "Characters/min",
+  speedValue: (value, unit, language) => String(value) + " " + (unit === "wpm" ? "words/min" : language === "ko" ? "keystrokes/min" : "characters/min"),
   korean: "Korean",
   english: "English",
   practiceSize: "Practice text size",

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateTypingScore,
+  countKoreanKeystrokes,
   createPracticeSession,
   hasReachedEnd,
   insertSpaceAtSelection,
@@ -17,6 +18,16 @@ describe("Korean text input", () => {
 
   it("keeps punctuation and spaces as typed characters", () => {
     expect(splitCharacters("한글, 한 줄!")).toHaveLength(8);
+  });
+
+  it("counts Korean two-set keyboard strokes rather than completed syllables", () => {
+    expect(countKoreanKeystrokes("한")).toBe(3);
+    expect(countKoreanKeystrokes("까")).toBe(2);
+    expect(countKoreanKeystrokes("ㄲㄸㅃㅆㅉ")).toBe(5);
+    expect(countKoreanKeystrokes("과")).toBe(3);
+    expect(countKoreanKeystrokes("값")).toBe(4);
+    expect(countKoreanKeystrokes("ㄲㅘㄳ")).toBe(5);
+    expect(countKoreanKeystrokes("한글, ")).toBe(8);
   });
 });
 
@@ -52,12 +63,14 @@ describe("practice sessions", () => {
       at: 4_000,
     });
 
-    expect(calculateTypingScore("한글", corrected, 5_000)).toMatchObject({
+    expect(calculateTypingScore("한글", corrected, 5_000, "ko")).toMatchObject({
       accuracy: 100,
       correctCount: 2,
       typedCount: 2,
       elapsedMs: 4_000,
-      charactersPerMinute: 30,
+      charactersPerMinute: null,
+      keystrokeCount: 6,
+      keystrokesPerMinute: 90,
     });
   });
 
@@ -68,11 +81,13 @@ describe("practice sessions", () => {
       at: 100,
     });
 
-    expect(calculateTypingScore("한글", session, 1_100)).toMatchObject({
+    expect(calculateTypingScore("한글", session, 1_100, "ko")).toMatchObject({
       accuracy: 100 / 3,
       correctCount: 1,
       typedCount: 3,
-      charactersPerMinute: 60,
+      charactersPerMinute: null,
+      keystrokeCount: 7,
+      keystrokesPerMinute: 420,
     });
   });
 
@@ -83,10 +98,23 @@ describe("practice sessions", () => {
       at: 1_000,
     });
 
-    expect(calculateTypingScore("한글", session, 1_999).charactersPerMinute).toBeNull();
-    expect(calculateTypingScore("한글", session, 2_000).charactersPerMinute).toBe(
-      60,
-    );
+    expect(calculateTypingScore("한글", session, 1_999, "ko").keystrokesPerMinute).toBeNull();
+    expect(calculateTypingScore("한글", session, 2_000, "ko").keystrokesPerMinute).toBe(180);
+  });
+
+  it("keeps English speed based on correct characters", () => {
+    const session = reducePracticeSession(createPracticeSession(), {
+      type: "input-changed",
+      input: "hellx",
+      at: 1_000,
+    });
+    expect(calculateTypingScore("hello", session, 2_000, "en")).toMatchObject({
+      correctCount: 4,
+      typedCount: 5,
+      charactersPerMinute: 240,
+      keystrokeCount: null,
+      keystrokesPerMinute: null,
+    });
   });
 
   it("does not finish before all target graphemes are typed", () => {
