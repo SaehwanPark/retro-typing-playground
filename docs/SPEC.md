@@ -5,8 +5,9 @@
 ## 상태 표시
 
 - 체크된 항목은 구현을 마치고 완료 조건을 확인한 작업이다.
-- 첫 작업 커밋부터 [지금 구현중]을 활성 항목에 붙인다. 완료 후 체크하고 레이블을 뗀다.
+- 현재 구현 중인 사용자 기능 슬라이스에 [지금 구현중]을 붙인다. 완료 후 체크하고 레이블을 뗀다.
 - 선행 작업과 완료 조건이 정해진 다음 한 항목에 [바로 다음에 구현해야 함]을 붙인다.
+- 플랫폼 검증의 미확인 항목은 별도의 비차단 후속으로 관리한다. Windows 11 + Chrome의 기본 흐름을 막는 치명적 문제가 재현된 경우에만 현재 개발을 멈춘다.
 
 ## 완료
 
@@ -29,7 +30,16 @@
 
 ## 진행 중
 
-- [ ] **A06 · 세 OS 지원 확인** [지금 구현중]
-  - Windows 11·macOS·Linux의 실제 브라우저와 한글 IME에서 프로젝트 명세의 품질 기준을 확인한다. 재현 가능한 설치·실행 절차와 확인한 조합을 README에 반영한다.
-  - Chromium, Firefox, WebKit의 배포물 자동 검증을 마쳤다. Ubuntu Firefox와 실제 IBus 한글 두벌식에서 조합 수정, 두 번의 Enter, Esc 복귀와 브라우저 200% 확대를 확인했다.
-  - Windows Edge에서 배포물 진입을 확인했다. Microsoft 한국어 IME의 실제 조합과 macOS Safari 검증은 [A06 Draft PR](https://github.com/SaehwanPark/retro-typing-playground/pull/6)에서 이어간다.
+- [ ] **A08 · 자유 입력 연습장** · 완료 후 `v0.0.7` [지금 구현중]
+  - 시작 메뉴의 ‘연습장’을 열면 빈 여러 줄 편집기에 초점이 간다. 한글·영문 등 임의의 내용을 입력하고 Enter로 줄바꿈한다. 일반 편집과 붙여넣기를 허용한다.
+  - Esc 또는 ‘메뉴’ 버튼으로 돌아간다. 메뉴 초점을 ‘연습장’으로 복원한다. 나간 내용은 저장하지 않으며 다시 열면 빈 편집기로 시작한다.
+  - 자유 입력은 제시문·점수·결과 화면·연습 기록을 만들지 않는다.
+  - 키보드 진입, 편집, 줄바꿈, 복귀, 초점 복원과 다시 열었을 때 초기화를 확인한다.
+
+## 검증 후속 (개발 비차단)
+
+- [ ] **A06 · Windows 11 + Chrome 기준 환경 확인**
+  - Windows 호스트에서 Node 26.13.0 / npm 12.2.0으로 엄격한 `npm ci`, `npm run build`, `node serve.mjs`와 루프백 HTTP 200을 확인했다.
+  - Chrome에서 한글 단문 입력, 100% 점수, Enter 제출, 다음 문장과 직전 점수, Esc 메뉴 복귀를 확인했다. 입력은 브라우저 제어 도구로 수행해 실제 Microsoft IME 조합을 증명하지 않는다. Playwright의 합성 IME 테스트도 OS 입력기를 구동하지 않는다.
+  - 실제 Microsoft IME 조합과 Backspace, Enter 두 번의 구분, 오프라인 새 프로필, 200% 확대를 확인한다. 도구 제어 실패나 미확인만으로 개발을 멈추지 않는다.
+  - Chromium·Firefox·WebKit 자동 검증과 Ubuntu Firefox + IBus 한글 두벌식 실기 확인은 보조 근거다. Windows Edge와 macOS Safari 검증은 후속 호환성 작업이다. [A06 Draft PR](https://github.com/SaehwanPark/retro-typing-playground/pull/6)
