@@ -76,6 +76,42 @@ test("arrow navigation selects a language and returns focus to that mode", async
   await expect(wordMode).toBeFocused();
 });
 
+test("free practice edits multiline text without scoring or saving it", async ({ page }) => {
+  await page.goto("/");
+  const practicePad = page.getByRole("button", { name: "연습장" });
+  const entries = await page.locator(".activity-menu button").evaluateAll((buttons) =>
+    buttons.map((button) => button.getAttribute("data-activity"))
+  );
+  const practiceIndex = entries.indexOf("free-practice");
+  expect(practiceIndex).toBeGreaterThan(0);
+  for (let step = 0; step < practiceIndex; step += 1) await page.keyboard.press("ArrowDown");
+  await expect(practicePad).toBeFocused();
+  await page.keyboard.press("Enter");
+
+  const editor = page.getByRole("textbox", { name: "원하는 내용을 자유롭게 입력하세요" });
+  await expect(editor).toBeFocused();
+  await editor.fill("첫 줄\n둘째 줄");
+  await editor.press("Enter");
+  await expect(editor).toHaveValue("첫 줄\n둘째 줄\n");
+  await expect(page.getByRole("button", { name: "제출" })).toHaveCount(0);
+
+  await editor.dispatchEvent("compositionstart", { bubbles: true });
+  await editor.press("Escape");
+  await expect(page.getByRole("heading", { name: "연습장" })).toBeVisible();
+  await editor.dispatchEvent("compositionend", { bubbles: true });
+  await editor.press("Escape");
+  await expect(practicePad).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(editor).toBeFocused();
+  await expect(editor).toHaveValue("");
+
+  await editor.fill("나가면 버려지는 임시 입력");
+  await page.getByRole("button", { name: "← 메뉴" }).click();
+  await expect(practicePad).toBeFocused();
+  await page.getByRole("button", { name: "최근 연습 기록" }).click();
+  await expect(page.getByText("표시할 연습 기록이 없습니다.")).toBeVisible();
+});
+
 test("position practice follows physical key codes and includes missed attempts", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "두벌식 자리 연습" }).click();

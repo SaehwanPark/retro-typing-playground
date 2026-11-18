@@ -12,12 +12,14 @@ import type { PracticeRecord } from "../domain/history";
 
 export const historyEntry = { id: "history", label: "최근 연습 기록", kind: "history" } as const;
 export const challengeEntry = { id: "challenge", label: "30초 낱말 도전", kind: "challenge" } as const;
+export const freePracticeEntry = { id: "free-practice", label: "연습장", kind: "free-practice" } as const;
 
 export type PracticeState =
   | { screen: "menu"; selected: string | null }
   | { screen: "library"; selected: string | null }
   | { screen: "history" }
   | { screen: "challenge" }
+  | { screen: "free-practice" }
   | {
     screen: "practice";
     activity: TextActivity;
@@ -37,6 +39,7 @@ export type AppAction =
   | { type: "open-library" }
   | { type: "open-history" }
   | { type: "open-challenge" }
+  | { type: "open-free-practice" }
   | { type: "input-changed"; input: string; at: number }
   | ({ type: "submit" } & CompletionTime)
   | ({ type: "position-key"; key: PositionKey } & CompletionTime)
@@ -109,6 +112,7 @@ export function reducePracticeState(state: PracticeState, action: AppAction): Pr
   if (action.type === "open-library") return { screen: "library", selected: null };
   if (action.type === "open-history") return { screen: "history" };
   if (action.type === "open-challenge") return { screen: "challenge" };
+  if (action.type === "open-free-practice") return { screen: "free-practice" };
   if (action.type === "start") return startActivity(action.activity);
   if (state.screen === "menu") return state;
   if (state.screen === "library") {
@@ -119,6 +123,9 @@ export function reducePracticeState(state: PracticeState, action: AppAction): Pr
   }
   if (state.screen === "challenge") {
     return action.type === "return-to-menu" ? { screen: "menu", selected: challengeEntry.id } : state;
+  }
+  if (state.screen === "free-practice") {
+    return action.type === "return-to-menu" ? { screen: "menu", selected: freePracticeEntry.id } : state;
   }
   if (action.type === "return-to-menu") {
     const screen = state.activity.kind === "article" ? "library" : "menu";
