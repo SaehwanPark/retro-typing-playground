@@ -11,11 +11,13 @@ import type { PracticeSession, TypingScore } from "../domain/typing";
 import type { PracticeRecord } from "../domain/history";
 
 export const historyEntry = { id: "history", label: "최근 연습 기록", kind: "history" } as const;
+export const challengeEntry = { id: "challenge", label: "30초 낱말 도전", kind: "challenge" } as const;
 
 export type PracticeState =
   | { screen: "menu"; selected: string | null }
   | { screen: "library"; selected: string | null }
   | { screen: "history" }
+  | { screen: "challenge" }
   | {
     screen: "practice";
     activity: TextActivity;
@@ -34,6 +36,7 @@ export type AppAction =
   | { type: "start"; activity: Activity | ArticleActivity }
   | { type: "open-library" }
   | { type: "open-history" }
+  | { type: "open-challenge" }
   | { type: "input-changed"; input: string; at: number }
   | ({ type: "submit" } & CompletionTime)
   | ({ type: "position-key"; key: PositionKey } & CompletionTime)
@@ -105,6 +108,7 @@ function reduceArticlePractice(state: Extract<PracticeState, { screen: "article"
 export function reducePracticeState(state: PracticeState, action: AppAction): PracticeState {
   if (action.type === "open-library") return { screen: "library", selected: null };
   if (action.type === "open-history") return { screen: "history" };
+  if (action.type === "open-challenge") return { screen: "challenge" };
   if (action.type === "start") return startActivity(action.activity);
   if (state.screen === "menu") return state;
   if (state.screen === "library") {
@@ -112,6 +116,9 @@ export function reducePracticeState(state: PracticeState, action: AppAction): Pr
   }
   if (state.screen === "history") {
     return action.type === "return-to-menu" ? { screen: "menu", selected: historyEntry.id } : state;
+  }
+  if (state.screen === "challenge") {
+    return action.type === "return-to-menu" ? { screen: "menu", selected: challengeEntry.id } : state;
   }
   if (action.type === "return-to-menu") {
     const screen = state.activity.kind === "article" ? "library" : "menu";
@@ -143,8 +150,7 @@ type SessionAction = AppAction | { type: "saved"; id: string };
 
 function completedRecord(before: PracticeState, after: PracticeState, action: AppAction): PracticeRecord | null {
   if (action.type !== "submit" && action.type !== "position-key") return null;
-  if (before.screen === "menu" || before.screen === "library" || before.screen === "history" ||
-      before.screen === "result") return null;
+  if (!("activity" in before) || before.screen === "result") return null;
   const score = after.screen === "result" ? after.score
     : (before.screen === "practice" && after.screen === "practice" && after.round > before.round)
       ? after.previous : null;
