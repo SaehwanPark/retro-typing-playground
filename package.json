@@ -6,6 +6,9 @@
   "engines": {
     "node": ">=22.12.0"
   },
+  "allowScripts": {
+    "fsevents@2.3.3": true
+  },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",

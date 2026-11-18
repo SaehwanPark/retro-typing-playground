@@ -33,4 +33,5 @@
   - Windows 11·macOS·Linux의 실제 브라우저와 한글 IME에서 프로젝트 명세의 품질 기준을 확인한다. 재현 가능한 설치·실행 절차와 확인한 조합을 README에 반영한다.
   - Chromium, Firefox, WebKit의 배포물 자동 검증을 마쳤다. Ubuntu Firefox와 실제 IBus 한글 두벌식에서 조합 수정, 두 번의 Enter, Esc 복귀와 브라우저 200% 확대를 확인했다.
   - Windows Edge에서 배포물 진입을 확인했다. Microsoft 한국어 IME의 실제 조합과 macOS Safari 검증은 [A06 Draft PR](https://github.com/SaehwanPark/retro-typing-playground/pull/6)에서 이어간다.
+  - macOS 제공 로그의 `fsevents@2.3.3` 설치 스크립트 경고에 맞춰 lockfile 버전만 허용했다. Linux npm 12 엄격 설치와 빌드는 통과했으며, 실제 macOS `npm ci`와 Safari 검증은 남았다.
   - [환경별 근거와 재현 절차](PLATFORM-VERIFICATION.md)

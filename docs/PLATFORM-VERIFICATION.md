@@ -6,7 +6,9 @@
 | --- | --- | --- |
 | Windows 11 Pro 26300 · Edge 157.0.4341.60 | Edge 확장으로 고정 루프백 주소의 배포물과 한글 낱말 입력창을 열고 포커스를 확인했다. 확장 탭의 `Alt_R` 뒤 `d` 키 전송은 영문 `d`를 입력해 실제 OS IME 조합을 증명하지 못했다. `Ctrl+=` 입력 뒤 페이지 DPR은 1로 유지되어 200% 확대도 확인되지 않았다. 같은 Windows의 Chrome 157에서 확정된 한글 텍스트로 제출, 재시도, Esc 복귀를 확인했다. | Edge 네이티브 창 제어는 현재 URL 허용 여부를 검증하지 못해 중단됐다. Microsoft 한국어 IME의 실제 조합과 200% 확대, 새 프로필 오프라인 완주를 확인한다. |
 | Ubuntu 24.04.5 · Firefox 159 · IBus 1.5.29 / ibus-hangul 1.5.5 | 격리된 X11 데스크톱에서 실제 두벌식 조합, Backspace, Enter 확정과 이후 Enter 제출, Esc 메뉴 초점 복원을 확인했다. 루프백만 연결된 새 프로필에서 시작했고 브라우저 200% 확대와 새로고침한 뒤 기록 보존을 확인했다. | Linux 검증 완료. |
-| macOS · Safari | 현재 실행 환경에 macOS 호스트가 없다. | Safari와 한국어 두벌식에서 아래 절차를 확인한다. |
+| macOS · Safari | 사용자 제공 로그에서 `npm ci`는 패키지 설치를 마쳤지만 `fsevents@2.3.3`의 설치 스크립트를 건너뛰었다. 저장소는 lockfile에 있는 해당 버전만 승인한다. Linux npm 12.2.2에서 엄격한 스크립트 정책으로 설치와 빌드를 확인했다. | 실제 macOS에서 깨끗한 체크아웃의 `npm ci`와 빌드를 확인하고, Safari와 한국어 두벌식에서 아래 절차를 확인한다. |
+
+첨부 로그의 `npm audit fix --force`는 선언된 범위 밖의 SemVer 주요 버전 변경을 시도했고 취약점 보고도 남겼다. 감사 경고와 설치 스크립트 승인은 별개이므로 이를 설치 문제 해결에 사용하지 않는다. [npm audit 문서](https://docs.npmjs.com/cli/audit/)
 
 Chromium과 Firefox는 Fedora WSL에서, WebKit은 격리된 Ubuntu에서 배포물 브라우저 테스트를 각각 10개씩 통과했다. Firefox에서 실제 IBus가 조합 종료 뒤 같은 Enter를 다시 전달하는 동작을 발견하고 키를 뗄 때까지 해당 단축키를 보류하도록 수정했다. [수정 PR](https://github.com/SaehwanPark/retro-typing-playground/pull/8)
 
