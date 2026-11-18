@@ -1,19 +1,21 @@
 import { useEffect, useState } from "react";
-import type { KoreanShortLesson } from "../content/lessons";
+import type { TextLesson } from "../content/lessons";
 import { calculateTypingScore, splitCharacters } from "../domain/typing";
-import type { PracticeSession } from "../domain/typing";
+import type { PracticeSession, TypingScore } from "../domain/typing";
 import { TypingInput } from "./TypingInput";
 import { Scoreboard } from "./Scoreboard";
 
 type PracticeViewProps = {
-  lesson: KoreanShortLesson;
+  lesson: TextLesson;
   session: PracticeSession;
+  previous: TypingScore | null;
   onInput: (input: string, at: number) => void;
   onSubmit: (at: number) => void;
+  onFinish: () => void;
   onBack: () => void;
 };
 
-export function PracticeView({ lesson, session, onInput, onSubmit, onBack }: PracticeViewProps) {
+export function PracticeView({ lesson, session, previous, onInput, onSubmit, onFinish, onBack }: PracticeViewProps) {
   const [now, setNow] = useState(() => performance.now());
   const [notice, setNotice] = useState("");
   const target = splitCharacters(lesson.text);
@@ -38,10 +40,10 @@ export function PracticeView({ lesson, session, onInput, onSubmit, onBack }: Pra
   return (
     <section className="screen">
       <button className="back" type="button" onClick={onBack}>← 메뉴</button>
-      <h1>{lesson.title}</h1>
+      <h1 lang={lesson.language}>{lesson.title}</h1>
       <div className="target">
         <div className="target-label"><strong>제시문</strong><span>{typed.length} / {target.length}자</span></div>
-        <p id="typing-target" aria-label={lesson.text}>
+        <p id="typing-target" aria-label={lesson.text} lang={lesson.language}>
           {target.map((character, index) => {
             const status = index === typed.length ? "current" :
               index > typed.length ? "" : typed[index] === character ? "correct" : "wrong";
@@ -55,6 +57,7 @@ export function PracticeView({ lesson, session, onInput, onSubmit, onBack }: Pra
       <div className="entry">
         <label htmlFor="typing-input">따라 입력하기</label>
         <TypingInput
+          language={lesson.language}
           onInput={(input, at) => {
             setNow(at);
             setNotice("");
@@ -70,7 +73,14 @@ export function PracticeView({ lesson, session, onInput, onSubmit, onBack }: Pra
         <button type="button" className="button" onClick={submit}>제출</button>
       </div>
       <p className="notice" role="status">{notice}</p>
-      <Scoreboard score={score} />
+      <Scoreboard label="현재 점수" score={score} />
+      {previous && (
+        <section className="previous-score" aria-labelledby="previous-title">
+          <h2 id="previous-title">직전 문장</h2>
+          <Scoreboard label="직전 점수" score={previous} />
+          <button type="button" className="button secondary" onClick={onFinish}>연습 마치기</button>
+        </section>
+      )}
     </section>
   );
 }
