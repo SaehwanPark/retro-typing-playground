@@ -67,14 +67,19 @@ export function HistoryView({ records, onClear, onBack, copy, interfaceLanguage,
         <ul className="history-list">
           {visible.map(({ id, mode, language, completedAt, score }) => {
             const speedUnit = typingSpeedUnits[language];
-            const speed = toDisplayedTypingSpeed(score.charactersPerMinute, speedUnit);
+            const speed = toDisplayedTypingSpeed(
+              score.charactersPerMinute,
+              score.keystrokesPerMinute,
+              language,
+              speedUnit,
+            );
             return (
               <li key={id}>
                 <div><strong>{copy.modeLabel(mode)}</strong> · {language === "ko" ? copy.korean : copy.english}</div>
                 <span>{dateFormat.format(completedAt)}</span>
                 <div>
                   {score.accuracy === null ? "—" : copy.accuracyValue(Math.round(score.accuracy))}
-                  {speed !== null && ` · ${copy.speedValue(Math.round(speed), speedUnit)}`}
+                  {speed !== null && ` · ${copy.speedValue(Math.round(speed), speedUnit, language)}`}
                 </div>
               </li>
             );

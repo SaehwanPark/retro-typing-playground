@@ -1,3 +1,5 @@
+import type { Language } from "../content/lessons";
+
 export type PracticeSession = {
   input: string;
   startedAt: number | null;
@@ -10,6 +12,8 @@ export type TypingScore = {
   typedCount: number;
   elapsedMs: number | null;
   charactersPerMinute: number | null;
+  keystrokeCount: number | null;
+  keystrokesPerMinute: number | null;
 };
 
 export type PracticeAction =
@@ -20,6 +24,12 @@ const koreanCharacterSegmenter = new Intl.Segmenter("ko", {
   granularity: "grapheme",
 });
 
+// Two-set input uses two physical keys for compound vowels and final clusters; shifted doubles stay one.
+const compoundMedials = new Set([0x116a, 0x116b, 0x116c, 0x116f, 0x1170, 0x1171, 0x1174]);
+const compoundFinals = new Set([0x11aa, 0x11ac, 0x11ad, 0x11b0, 0x11b1, 0x11b2, 0x11b3, 0x11b4, 0x11b5, 0x11b6, 0x11b9]);
+const compoundCompatibilityConsonants = new Set([0x3133, 0x3135, 0x3136, 0x313a, 0x313b, 0x313c, 0x313d, 0x313e, 0x313f, 0x3140, 0x3144]);
+const compoundCompatibilityVowels = new Set([0x3158, 0x3159, 0x315a, 0x315d, 0x315e, 0x315f, 0x3162]);
+
 export function normalizeInput(input: string): string {
   return input.normalize("NFC");
 }
@@ -28,6 +38,29 @@ export function splitCharacters(input: string): string[] {
   return Array.from(koreanCharacterSegmenter.segment(normalizeInput(input)), (part) =>
     part.segment
   );
+}
+
+function isModernKoreanJamo(codePoint: number): boolean {
+  return (codePoint >= 0x1100 && codePoint <= 0x1112)
+    || (codePoint >= 0x1161 && codePoint <= 0x1175)
+    || (codePoint >= 0x11a8 && codePoint <= 0x11c2)
+    || (codePoint >= 0x3131 && codePoint <= 0x3163);
+}
+
+function jamoKeystrokes(codePoint: number): number {
+  return compoundMedials.has(codePoint) || compoundFinals.has(codePoint)
+    || compoundCompatibilityConsonants.has(codePoint) || compoundCompatibilityVowels.has(codePoint)
+    ? 2
+    : 1;
+}
+
+export function countKoreanKeystrokes(input: string): number {
+  return splitCharacters(input).reduce((total, character) => {
+    const jamo = Array.from(character.normalize("NFD"), (part) => part.codePointAt(0)!);
+    // NFD exposes the keys used for a Hangul syllable; non-jamo graphemes remain one key.
+    if (jamo.length === 0 || !jamo.every(isModernKoreanJamo)) return total + 1;
+    return total + jamo.reduce((count, codePoint) => count + jamoKeystrokes(codePoint), 0);
+  }, 0);
 }
 
 export function createPracticeSession(): PracticeSession {
@@ -66,6 +99,7 @@ export function calculateTypingScore(
   target: string,
   session: PracticeSession,
   now: number,
+  language: Language,
 ): TypingScore {
   const targetCharacters = splitCharacters(target);
   const typedCharacters = splitCharacters(session.input);
@@ -80,27 +114,32 @@ export function calculateTypingScore(
     session.startedAt === null
       ? null
       : Math.max(0, completedAt - session.startedAt);
-  return createTypingScore(correctCount, typedCount, elapsedMs);
+  const keystrokeCount = language === "ko" ? countKoreanKeystrokes(session.input) : null;
+  return createTypingScore(correctCount, typedCount, elapsedMs, language, keystrokeCount);
 }
 
 export function createTypingScore(
   correctCount: number,
   typedCount: number,
   elapsedMs: number | null,
+  language: Language,
+  keystrokeCount: number | null,
 ): TypingScore {
   const accuracy =
     typedCount === 0 ? null : (correctCount * 100) / typedCount;
-  const charactersPerMinute =
-    typedCount === 0 || elapsedMs === null || elapsedMs < 1_000
+  const ratePerMinute = (count: number | null) =>
+    count === null || count === 0 || elapsedMs === null || elapsedMs < 1_000
       ? null
-      : (correctCount * 60_000) / elapsedMs;
+      : (count * 60_000) / elapsedMs;
 
   return {
     accuracy,
     correctCount,
     typedCount,
     elapsedMs,
-    charactersPerMinute,
+    charactersPerMinute: language === "en" ? ratePerMinute(correctCount) : null,
+    keystrokeCount: language === "ko" ? keystrokeCount : null,
+    keystrokesPerMinute: language === "ko" ? ratePerMinute(keystrokeCount) : null,
   };
 }
 

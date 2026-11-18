@@ -7,6 +7,7 @@ export type ArticleSession = {
   startedAt: number | null;
   correctCount: number;
   typedCount: number;
+  keystrokeCount: number;
 };
 
 type ArticleAdvance =
@@ -15,7 +16,14 @@ type ArticleAdvance =
   | { type: "completed"; score: TypingScore };
 
 export function createArticleSession(): ArticleSession {
-  return { lineIndex: 0, line: createPracticeSession(), startedAt: null, correctCount: 0, typedCount: 0 };
+  return {
+    lineIndex: 0,
+    line: createPracticeSession(),
+    startedAt: null,
+    correctCount: 0,
+    typedCount: 0,
+    keystrokeCount: 0,
+  };
 }
 
 export function updateArticleInput(session: ArticleSession, input: string, at: number): ArticleSession {
@@ -24,11 +32,13 @@ export function updateArticleInput(session: ArticleSession, input: string, at: n
 }
 
 export function scoreArticle(target: string, session: ArticleSession, at: number): TypingScore {
-  const line = calculateTypingScore(target, session.line, at);
+  const line = calculateTypingScore(target, session.line, at, "ko");
   return createTypingScore(
     session.correctCount + line.correctCount,
     session.typedCount + line.typedCount,
     session.startedAt === null ? null : Math.max(0, at - session.startedAt),
+    "ko",
+    session.keystrokeCount + (line.keystrokeCount ?? 0),
   );
 }
 
@@ -48,6 +58,7 @@ export function submitArticleLine(lines: readonly string[], session: ArticleSess
       line: createPracticeSession(),
       correctCount: score.correctCount,
       typedCount: score.typedCount,
+      keystrokeCount: score.keystrokeCount ?? session.keystrokeCount,
     },
   };
 }

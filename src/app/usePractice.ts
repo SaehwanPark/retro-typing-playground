@@ -89,7 +89,7 @@ function reduceTextPractice(
   if (!hasReachedEnd(state.lesson.text, session.input)) return state;
 
   const completed = reducePracticeSession(session, { type: "submitted", at: action.at });
-  const score = calculateTypingScore(state.lesson.text, completed, action.at);
+  const score = calculateTypingScore(state.lesson.text, completed, action.at, state.lesson.language);
   if (state.activity.kind === "word") {
     return { screen: "result", activity: state.activity, score };
   }

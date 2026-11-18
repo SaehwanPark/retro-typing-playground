@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { firstKoreanLesson } from "../src/content/lessons";
+import { countKoreanKeystrokes } from "../src/domain/typing";
 
 test("a new profile can practice from the build with only loopback access", async ({ page, baseURL }) => {
   await page.route("**/*", (route) => {
@@ -79,6 +80,25 @@ test("Korean sentence Space submits only after the prompt is complete", async ({
   await input.press("Space");
   await expect(page.getByRole("heading", { name: "창가의 아침" })).toBeVisible();
   await expect(input).toHaveValue("");
+});
+
+test("Korean CPM displays two-set keystrokes per minute", async ({ page }) => {
+  await page.clock.install();
+  await page.goto("/");
+  await page.getByRole("button", { name: /한글 단문/ }).click();
+  const input = page.getByRole("textbox", { name: "따라 입력하기" });
+  const prompt = await page.locator("#typing-target").getAttribute("aria-label");
+  expect(prompt).not.toBeNull();
+  const expectedSpeed = Math.round(countKoreanKeystrokes(prompt!) * 30);
+
+  await input.fill(prompt!);
+  await page.clock.fastForward(2_000);
+  await input.press("Enter");
+
+  await expect(page.locator(".previous-score .scores dt").nth(1)).toHaveText("타수/분");
+  const displayedSpeed = Number(await page.locator(".previous-score .scores dd").nth(1).textContent());
+  expect(displayedSpeed).toBeGreaterThanOrEqual(Math.floor(expectedSpeed * 0.95));
+  expect(displayedSpeed).toBeLessThanOrEqual(Math.ceil(expectedSpeed * 1.05));
 });
 
 test("a Space key used to complete Korean IME input submits once", async ({ page }) => {

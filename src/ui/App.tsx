@@ -271,6 +271,7 @@ export function App() {
           title={currentScreen.activity.kind === "sentence" ? copy.previousSentence : copy.activityLabel(currentScreen.activity.id, currentScreen.activity.label)}
           score={currentScreen.score}
           showSpeed={currentScreen.activity.kind !== "position"}
+          language={activityLanguage(currentScreen.activity)}
           speedUnit={typingSpeedUnits[activityLanguage(currentScreen.activity)]}
           comparison={latest ? comparableRecord(latest, history.records)?.score : undefined}
           backLabel={currentScreen.activity.kind === "article" ? copy.chooseArticle : copy.menu}

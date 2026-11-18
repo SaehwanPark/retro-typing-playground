@@ -116,7 +116,7 @@ export function DisplaySettings({
             const value = event.currentTarget.value;
             if (isTypingSpeedUnit(value)) onTypingSpeedUnitChange("ko", value);
           }}>
-            <option value="cpm">{copy.speedUnitCpm}</option>
+            <option value="cpm">{copy.speedUnitCpm("ko")}</option>
             <option value="wpm">{copy.speedUnitWpm}</option>
           </select>
         </label>
@@ -125,7 +125,7 @@ export function DisplaySettings({
             const value = event.currentTarget.value;
             if (isTypingSpeedUnit(value)) onTypingSpeedUnitChange("en", value);
           }}>
-            <option value="cpm">{copy.speedUnitCpm}</option>
+            <option value="cpm">{copy.speedUnitCpm("en")}</option>
             <option value="wpm">{copy.speedUnitWpm}</option>
           </select>
           <small>{copy.speedUnitHelp}</small>

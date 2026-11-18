@@ -34,7 +34,7 @@ export function PracticeView({
   const [notice, setNotice] = useState("");
   const target = splitCharacters(prompt);
   const typed = splitCharacters(session.input);
-  const score = scoreAt ? scoreAt(now) : calculateTypingScore(prompt, session, now);
+  const score = scoreAt ? scoreAt(now) : calculateTypingScore(prompt, session, now, language);
 
   useEffect(() => {
     if (startedAt === null) return;
@@ -95,11 +95,11 @@ export function PracticeView({
         <button type="button" className="button" onClick={() => submit()}>{copy.submit}</button>
       </div>
       <p className="notice" role="status">{notice}</p>
-      <Scoreboard label={copy.currentScore} score={score} speedUnit={speedUnit} copy={copy} />
+      <Scoreboard label={copy.currentScore} score={score} language={language} speedUnit={speedUnit} copy={copy} />
       {previous && (
         <section className="previous-score" aria-labelledby="previous-title">
           <h2 id="previous-title">{copy.previousSentence}</h2>
-          <Scoreboard label={copy.previousScore} score={previous} speedUnit={speedUnit} copy={copy} />
+          <Scoreboard label={copy.previousScore} score={previous} language={language} speedUnit={speedUnit} copy={copy} />
           <button type="button" className="button secondary" onClick={onFinish}>{copy.finishPractice}</button>
         </section>
       )}
