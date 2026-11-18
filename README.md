@@ -10,6 +10,8 @@
 
 Chromium, Firefox, WebKit에서 배포물 자동 검증을 통과했습니다. Ubuntu Firefox와 IBus 한글 두벌식에서 조합과 제출을 확인했고 Windows 11 Edge에서는 배포물 메뉴와 연습 진입을 확인했습니다. Microsoft 한국어 IME와 macOS Safari의 실제 조합 검증이 남아 있습니다. [지원 확인 PR](https://github.com/SaehwanPark/retro-typing-playground/pull/6)
 
+OS, 브라우저, 입력기별 확인 범위와 남은 단계는 [플랫폼 검증표](docs/PLATFORM-VERIFICATION.md)에서 확인할 수 있습니다.
+
 ## 실행하기
 
 Node.js LTS 22.12.0 이상이 필요합니다. 저장소에서 빌드한 뒤 실행합니다.
