@@ -6,11 +6,12 @@ type ResultViewProps = {
   title: string;
   score: TypingScore;
   showSpeed: boolean;
+  backLabel?: string;
   onRetry: () => void;
   onBack: () => void;
 };
 
-export function ResultView({ title, score, showSpeed, onRetry, onBack }: ResultViewProps) {
+export function ResultView({ title, score, showSpeed, backLabel = "메뉴", onRetry, onBack }: ResultViewProps) {
   const heading = useFocus<HTMLHeadingElement>();
 
   return (
@@ -24,9 +25,9 @@ export function ResultView({ title, score, showSpeed, onRetry, onBack }: ResultV
       <Scoreboard score={score} showSpeed={showSpeed} showTime />
       <div className="result-actions">
         <button type="button" className="button" onClick={onRetry}>다시 연습</button>
-        <button type="button" className="button secondary" onClick={onBack}>메뉴로 돌아가기</button>
+        <button type="button" className="button secondary" onClick={onBack}>{backLabel}로 돌아가기</button>
       </div>
-      <p className="keys" id="result-hint"><kbd>Enter</kbd> 다시 연습 <kbd>Esc</kbd> 메뉴</p>
+      <p className="keys" id="result-hint"><kbd>Enter</kbd> 다시 연습 <kbd>Esc</kbd> {backLabel}</p>
     </section>
   );
 }

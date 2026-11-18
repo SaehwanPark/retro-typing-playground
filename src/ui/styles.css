@@ -154,6 +154,9 @@ kbd:not(:first-child) { margin-inline-start: .55rem; }
 .previous-score { border-top: 1px solid var(--line); padding-top: .9rem; }
 .previous-score h2 { font-size: 1rem; margin: 0; }
 .previous-score .scores { margin-top: .7rem; }
+.article-progress { color: var(--quiet); margin: 1rem 0; font-size: .9rem; }
+.article-progress p { margin: .45rem 0; line-height: 1.45; overflow-wrap: anywhere; }
+.article-progress strong { color: #eee0cb; margin-inline-end: .3rem; }
 .keyboard-rows { display: grid; gap: .35rem; margin-top: 1rem; }
 .keyboard-row { display: flex; justify-content: center; gap: .25rem; }
 .keyboard-row kbd {

@@ -1,14 +1,18 @@
 import { useEffect, useRef } from "react";
 import type { KeyboardEvent } from "react";
-import type { Activity } from "../content/lessons";
+type MenuEntry = { id: string; label: string; detail?: string };
 
-type ActivityMenuProps = {
-  activities: readonly Activity[];
+type ActivityMenuProps<Entry extends MenuEntry> = {
+  activities: readonly Entry[];
+  title: string;
   selected: string | null;
-  onStart: (activity: Activity) => void;
+  onStart: (activity: Entry) => void;
+  onBack?: () => void;
 };
 
-export function ActivityMenu({ activities, selected, onStart }: ActivityMenuProps) {
+export function ActivityMenu<Entry extends MenuEntry>({
+  activities, title, selected, onStart, onBack,
+}: ActivityMenuProps<Entry>) {
   const list = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -29,8 +33,11 @@ export function ActivityMenu({ activities, selected, onStart }: ActivityMenuProp
   }
 
   return (
-    <section className="screen">
-      <h1>타자 연습</h1>
+    <section className="screen" onKeyDown={(event) => {
+      if (event.key === "Escape" && !event.nativeEvent.isComposing) onBack?.();
+    }}>
+      {onBack && <button className="back" type="button" onClick={onBack}>← 메뉴</button>}
+      <h1>{title}</h1>
       <div className="activity-menu" ref={list} onKeyDown={moveFocus}>
         {activities.map((activity) => (
           <button
@@ -40,7 +47,7 @@ export function ActivityMenu({ activities, selected, onStart }: ActivityMenuProp
             type="button"
             onClick={() => onStart(activity)}
           >
-            <strong>{activity.label}</strong>
+            <span><strong>{activity.label}</strong>{activity.detail && <small>{activity.detail}</small>}</span>
             <span aria-hidden="true">↵</span>
           </button>
         ))}
