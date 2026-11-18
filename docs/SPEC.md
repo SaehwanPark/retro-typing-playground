@@ -1,6 +1,6 @@
 # SPEC
 
-현재 버전은 `v0.0.15`이다. 제품의 동작과 기술 결정은 [프로젝트 명세](PROJECT-SPEC.md)를 따른다.
+현재 버전은 `v0.0.16`이다. 제품의 동작과 기술 결정은 [프로젝트 명세](PROJECT-SPEC.md)를 따른다.
 
 ## 상태 표시
 
@@ -11,11 +11,7 @@
 
 ## 진행 중
 
-- [ ] **A17 · macOS IME 공백 중복과 연습 화면 컨트롤 정렬** · [지금 구현중]
-  - 이슈 [#23](https://github.com/SaehwanPark/retro-typing-playground/issues/23): macOS Tahoe + Chrome에서 기본 한국어 입력기의 조합 확정 Space가 입력에 공백 두 칸을 남기는 문제를 해결한다. 조합 확정 Space는 입력을 이어갈 때 구분 공백 한 칸만 추가하고, 완료 입력에서는 한 번만 제출한다.
-  - 이슈 [#24](https://github.com/SaehwanPark/retro-typing-playground/issues/24): 연습 화면 상단의 환경설정과 화면 저장 버튼을 같은 수직 기준선에 맞춘다.
-  - 완료 조건: macOS Chrome 157의 OS 기본 두벌식 IME 조합 입력에서 공백 하나와 단일 제출을 확인하고, Windows Chrome 기준 동작을 유지한다. 두 상단 버튼의 수직 정렬을 연습 화면에서 확인한다. 설치와 프로덕션 빌드를 확인하고 플랫폼 증거를 기록한다.
-  - 진행 확인: 프로덕션 빌드 통과. Chrome에서 두 버튼의 위쪽 좌표가 모두 95.3 CSS px로 맞았다. 2026-11-18 사용자 실제 macOS 입력기 재검증에서 수정 후에도 한 번의 Space가 공백 두 칸을 남겼다. 조합 종료 시 이미 반영된 공백을 커서 앞에서 확인하도록 보완했고 재확인을 기다린다.
+현재 진행 중인 기능 슬라이스가 없다.
 
 ## 완료
 
@@ -90,6 +86,11 @@
   - 이전 한국어 기록은 정확도와 시간을 보존하고 복원할 수 없는 CPM은 숨긴다. 영어 기록 속도와 영어 WPM 계산은 유지한다.
   - `npm run verify` 통과: Vitest 7개 파일 21개 테스트, 프로덕션 빌드, Playwright E2E 33개. 자모 분해, 오타·초과 입력, 장문 누적, 한국어 타수 표시, 기존 기록 이전을 확인했다.
 
+- [x] **A17 · macOS IME 공백 중복과 연습 화면 컨트롤 정렬** · `v0.0.16`
+  - 이슈 [#23](https://github.com/SaehwanPark/retro-typing-playground/issues/23): macOS Tahoe · Chrome 157에서 기본 2-Set Korean 입력기로 조합 중 Space를 눌렀을 때 공백이 두 칸 남던 문제를 수정했다. 2026-11-18 사용자 실제 입력기 재확인에서 `한글을` 뒤 Space 한 번이 공백 하나만 남기고, 제시문 완료 뒤 Space 한 번이 한 단계만 이동하는 것을 확인했다.
+  - 이슈 [#24](https://github.com/SaehwanPark/retro-typing-playground/issues/24): 연습 화면 상단의 환경설정과 화면 저장 버튼 위쪽을 Chrome 화면에서 각각 95.3 CSS px로 맞췄다.
+  - 프로덕션 빌드가 통과했다. 이 변경 뒤 Windows 11 + Chrome의 수동 IME 회귀 확인은 하지 않았다. 기존 Windows 기준 환경 검증과 이번 macOS 사용자 확인은 [플랫폼 검증표](PLATFORM-VERIFICATION.md)에 구분해 기록했다.
+
 ## 호환성 후속 (개발 비차단)
 
-- Windows Edge와 macOS Safari는 현재 수용 기준에 포함하지 않는다. 필요가 생기면 별도 호환성 슬라이스로 검증한다.
+- Windows Edge와 macOS Safari는 현재 수용 기준에 포함하지 않는다. A17에서 검증한 macOS Tahoe · Chrome 157의 한국어 IME 동작은 해당 이슈의 범위이며, 전체 macOS 호환성 확인을 뜻하지 않는다. 필요가 생기면 별도 호환성 슬라이스로 검증한다.
