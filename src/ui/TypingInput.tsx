@@ -14,6 +14,7 @@ export function TypingInput({ language, onInput, onSubmit, onBack, onBlockedEdit
   const field = useFocus<HTMLInputElement>();
   const composing = useRef(false);
   const confirmed = useRef("");
+  const imeShortcuts = useRef(new Set<string>());
 
   function commit(value: string) {
     if (confirmed.current === value) return;
@@ -23,8 +24,20 @@ export function TypingInput({ language, onInput, onSubmit, onBack, onBlockedEdit
 
   function handleKey(event: KeyboardEvent<HTMLInputElement>) {
     const native = event.nativeEvent;
+    const code = event.code || event.key;
+    const shortcut = event.key === "Enter" || event.key === "Escape";
     // Some browsers report isComposing=false on the key that ends an IME edit.
-    if (composing.current || native.isComposing || native.keyCode === 229) return;
+    if (composing.current || native.isComposing || native.keyCode === 229) {
+      if (shortcut || code === "Enter" || code === "NumpadEnter" || code === "Escape") {
+        imeShortcuts.current.add(code);
+      }
+      return;
+    }
+    // IBus can forward a second keydown for the same physical press after compositionend.
+    if (imeShortcuts.current.has(code)) {
+      event.preventDefault();
+      return;
+    }
     if (event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
     if (event.key === "Enter") {
       event.preventDefault();
@@ -57,6 +70,8 @@ export function TypingInput({ language, onInput, onSubmit, onBack, onBlockedEdit
         if (!composing.current && !native.isComposing) commit(event.currentTarget.value);
       }}
       onKeyDown={handleKey}
+      onKeyUp={(event) => imeShortcuts.current.delete(event.code || event.key)}
+      onBlur={() => imeShortcuts.current.clear()}
       onPaste={(event) => {
         event.preventDefault();
         onBlockedEdit?.();
