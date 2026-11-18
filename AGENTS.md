@@ -1,6 +1,6 @@
 # 저장소 작업 지침
 
-Retro Typing Playground는 한메타자교실의 연습 경험에서 출발한 로컬 타자 연습 앱이다. Windows 11, macOS, Linux에서 브라우저와 기본 한글 입력기로 사용할 수 있도록 만든다.
+Retro Typing Playground는 한메타자교실의 연습 경험에서 출발한 로컬 타자 연습 앱이다. 현재 개발과 차단 판단의 기준 환경은 Windows 11 + Chrome이다. Windows Edge와 macOS 검증은 후속 범위이며, Linux는 보조 환경으로 확인된 상태다. Windows 11 + Chrome에서 설치·빌드·실행 또는 기본 한글 연습 흐름을 막는 치명적 문제만 작업 차단 사유로 삼는다. 다른 환경의 미검증 사항이나 문제는 기록하고 개발을 계속한다.
 
 - 제품의 의도와 기술 설계는 [docs/PROJECT-SPEC.md](docs/PROJECT-SPEC.md), 실행 순서와 구현 상태는 [docs/SPEC.md](docs/SPEC.md)를 읽는다. 구현을 시작하거나 끝낼 때 상태를 맞추고, README의 사용법과 지원 범위도 실제 동작에 맞춘다.
 - 함수형·도메인 및 타입 주도·제약 주도 설계를 적용한다. 순수 함수에 연습 규칙을 두고 브라우저 입출력은 경계에 둔다. 유효한 상태를 타입으로 표현하고 외부 데이터는 경계에서 검증한다.

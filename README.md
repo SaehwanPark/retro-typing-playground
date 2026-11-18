@@ -2,13 +2,13 @@
 
 한메타자교실에서 느꼈던 타자 연습의 재미를 오늘날 브라우저로 옮기는 프로젝트입니다. 키보드로 연습을 고르고, 한글 제시문을 입력한 뒤 결과를 보고 다시 도전하는 흐름을 만듭니다.
 
-목표 환경은 Windows 11, macOS, Linux입니다. 브라우저와 운영체제의 한글 입력기를 사용하고, 배포물을 받아 로컬에서 실행하면 인터넷 연결 없이 연습할 수 있도록 설계했습니다.
+현재 기준 환경은 Windows 11 + Chrome입니다. 브라우저와 운영체제의 한글 입력기를 사용하고, 배포물을 받아 로컬에서 실행하면 인터넷 연결 없이 연습할 수 있도록 설계했습니다. Windows Edge와 macOS 검증은 후속 범위이며, Linux Firefox와 IBus 한글 두벌식은 보조 환경으로 확인했습니다.
 
 ## 현재 상태
 
 `v0.0.6`에서 두벌식 자리 연습, 한글·영문 낱말 및 연속 단문, 한글 장문, 30초 낱말 도전을 사용할 수 있습니다. 같은 브라우저에서 최근 100회 결과를 관리하고 화면 위의 표시 설정으로 연습 글자 크기를 정할 수 있습니다.
 
-Chromium, Firefox, WebKit에서 배포물 자동 검증을 통과했습니다. Ubuntu Firefox와 IBus 한글 두벌식에서 조합과 제출을 확인했고 Windows 11 Edge에서는 배포물 메뉴와 연습 진입을 확인했습니다. Microsoft 한국어 IME와 macOS Safari의 실제 조합 검증이 남아 있습니다. [지원 확인 PR](https://github.com/SaehwanPark/retro-typing-playground/pull/6)
+Chromium, Firefox, WebKit에서 배포물 자동 검증을 통과했습니다. Windows 11 Chrome에서 한글 문장 입력·제출·점수 표시·메뉴 복귀를 확인했으며, 이 확인은 브라우저 제어 도구로 텍스트를 입력한 것이어서 실제 Windows IME 조합은 별도로 남아 있습니다. Ubuntu Firefox와 IBus 한글 두벌식 검증도 완료했습니다. Windows Edge와 macOS Safari는 후속 호환성 범위입니다. [지원 확인 PR](https://github.com/SaehwanPark/retro-typing-playground/pull/6)
 
 OS, 브라우저, 입력기별 확인 범위와 남은 단계는 [플랫폼 검증표](docs/PLATFORM-VERIFICATION.md)에서 확인할 수 있습니다.
 
