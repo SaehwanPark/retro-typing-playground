@@ -291,7 +291,7 @@ const en: InterfaceText = {
   currentPrompt: "Prompt",
   followAlong: "Type the prompt",
   submit: "Submit",
-  spaceSubmitHint: "Submit after completing the Korean sentence",
+  spaceSubmitHint: "Submit after completing the prompt",
   finishPractice: "Finish practice",
   currentScore: "Current score",
   previousSentence: "Previous sentence",

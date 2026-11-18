@@ -23,11 +23,12 @@ export function ChallengeView({ onBack, copy, onWordComplete }: ChallengeViewPro
     dispatch({ type: "start", at: performance.now() });
   };
   const stop = () => dispatch({ type: "stop", at: performance.now() });
-  const submit = () => {
+  const submit = (input?: string, at = performance.now()) => {
     setBlocked(false);
-    const at = performance.now();
-    if (state.phase === "running" && state.input === targetWord(challengeWords, state.solved) &&
+    const inputToSubmit = input ?? (state.phase === "running" ? state.input : "");
+    if (state.phase === "running" && inputToSubmit === targetWord(challengeWords, state.solved) &&
         at - state.startedAt < challengeDurationMs) onWordComplete();
+    if (input !== undefined) dispatch({ type: "input", input, at });
     dispatch({ type: "submit", at });
   };
 
@@ -89,19 +90,21 @@ export function ChallengeView({ onBack, copy, onWordComplete }: ChallengeViewPro
         <TypingInput
           key={state.solved}
           language="ko"
+          target={targetWord(challengeWords, state.solved)}
           onInput={(input, at) => {
             setBlocked(false);
             dispatch({ type: "input", input, at });
           }}
           onSubmit={submit}
+          onSpaceSubmit={submit}
           onBack={stop}
           onBlockedEdit={() => setBlocked(true)}
         />
       </div>
       <div className="practice-actions">
-        <p className="keys" id="typing-hint"><kbd>Enter</kbd> {copy.submit} <kbd>Esc</kbd> {copy.stopChallenge}</p>
+        <p className="keys" id="typing-hint"><kbd>Enter</kbd> / <kbd>Space</kbd> {copy.submit} <kbd>Esc</kbd> {copy.stopChallenge}</p>
         <div className="result-actions">
-          <button className="button" type="button" onClick={submit}>{copy.submit}</button>
+          <button className="button" type="button" onClick={() => submit()}>{copy.submit}</button>
           <button className="button secondary" type="button" onClick={stop}>{copy.stopChallenge}</button>
         </div>
       </div>

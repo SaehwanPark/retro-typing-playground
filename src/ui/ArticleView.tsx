@@ -9,7 +9,7 @@ type ArticleViewProps = {
   activity: ArticleActivity;
   session: ArticleSession;
   onInput: (input: string, at: number) => void;
-  onSubmit: (at: number) => void;
+  onSubmit: (at: number, input?: string) => void;
   onBack: () => void;
   copy: InterfaceText;
   speedUnit: TypingSpeedUnit;

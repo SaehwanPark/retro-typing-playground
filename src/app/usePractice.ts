@@ -48,7 +48,7 @@ export type AppAction =
   | { type: "open-challenge" }
   | { type: "open-free-practice" }
   | { type: "input-changed"; input: string; at: number }
-  | ({ type: "submit" } & CompletionTime)
+  | ({ type: "submit"; input?: string } & CompletionTime)
   | ({ type: "position-key"; key: PositionKey } & CompletionTime)
   | { type: "finish" }
   | { type: "return-to-menu" }
@@ -82,11 +82,13 @@ function reduceTextPractice(
   if (action.type === "finish" && state.previous) {
     return { screen: "result", activity: state.activity, score: state.previous };
   }
-  if (action.type !== "submit" || !hasReachedEnd(state.lesson.text, state.session.input)) {
-    return state;
-  }
+  if (action.type !== "submit") return state;
+  const session = action.input === undefined
+    ? state.session
+    : reducePracticeSession(state.session, { type: "input-changed", input: action.input, at: action.at });
+  if (!hasReachedEnd(state.lesson.text, session.input)) return state;
 
-  const completed = reducePracticeSession(state.session, { type: "submitted", at: action.at });
+  const completed = reducePracticeSession(session, { type: "submitted", at: action.at });
   const score = calculateTypingScore(state.lesson.text, completed, action.at);
   if (state.activity.kind === "word") {
     return { screen: "result", activity: state.activity, score };
@@ -107,7 +109,10 @@ function reduceArticlePractice(state: Extract<PracticeState, { screen: "article"
     return { ...state, session: updateArticleInput(state.session, action.input, action.at) };
   }
   if (action.type !== "submit") return state;
-  const update = submitArticleLine(state.activity.lines, state.session, action.at);
+  const session = action.input === undefined
+    ? state.session
+    : updateArticleInput(state.session, action.input, action.at);
+  const update = submitArticleLine(state.activity.lines, session, action.at);
   switch (update.type) {
     case "waiting": return state;
     case "next-line": return { ...state, session: update.session };

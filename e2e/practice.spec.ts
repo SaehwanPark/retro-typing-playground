@@ -81,7 +81,7 @@ test("Korean sentence Space submits only after the prompt is complete", async ({
   await expect(input).toHaveValue("");
 });
 
-test("a Space key used by Korean IME composition does not submit", async ({ page }) => {
+test("a Space key used to complete Korean IME input submits once", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: /한글 단문/ }).click();
   const input = page.getByRole("textbox", { name: "따라 입력하기" });
@@ -96,26 +96,54 @@ test("a Space key used by Korean IME composition does not submit", async ({ page
     }));
   }, firstKoreanLesson.text);
   await input.dispatchEvent("compositionend", { bubbles: true });
-  await expect(input).toHaveValue(firstKoreanLesson.text);
-  await expect(page.getByRole("heading", { name: firstKoreanLesson.title })).toBeVisible();
+  await expect(input).toHaveValue("");
+  await expect(page.getByRole("heading", { name: "창가의 아침" })).toBeVisible();
 
   await input.dispatchEvent("keydown", { key: " ", code: "Space", bubbles: true });
-  await expect(page.getByRole("heading", { name: firstKoreanLesson.title })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "창가의 아침" })).toBeVisible();
   await input.dispatchEvent("keyup", { key: " ", code: "Space", bubbles: true });
   await input.press("Space");
   await expect(page.getByRole("heading", { name: "창가의 아침" })).toBeVisible();
+  await expect(input).toHaveValue(" ");
 });
 
-test("Space submission stays limited to Korean sentence practice", async ({ page }) => {
+test("an IME-ending Space inserts one separator while the prompt continues", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /한글 단문/ }).click();
+  const input = page.getByRole("textbox", { name: "따라 입력하기" });
+  const prefixAndComposition = Array.from(firstKoreanLesson.text).slice(0, 3).join("");
+
+  await input.evaluate((element, text) => {
+    const field = element as HTMLInputElement;
+    field.dispatchEvent(new CompositionEvent("compositionstart", { bubbles: true }));
+    field.value = text;
+    field.setSelectionRange(text.length, text.length);
+    field.dispatchEvent(new InputEvent("input", { isComposing: true, bubbles: true }));
+    field.dispatchEvent(new KeyboardEvent("keydown", {
+      key: " ", code: "Space", isComposing: true, bubbles: true,
+    }));
+  }, prefixAndComposition);
+  await input.dispatchEvent("compositionend", { bubbles: true });
+  await expect(input).toHaveValue(prefixAndComposition + " ");
+  await expect(page.getByRole("heading", { name: "창가의 아침" })).toHaveCount(0);
+
+  await input.dispatchEvent("keydown", { key: " ", code: "Space", bubbles: true });
+  await expect(input).toHaveValue(prefixAndComposition + " ");
+  await input.dispatchEvent("keyup", { key: " ", code: "Space", bubbles: true });
+});
+
+test("Space submits completed Korean and English practice tasks", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "한글 낱말" }).click();
   const koreanWordInput = page.getByRole("textbox", { name: "따라 입력하기" });
-  await koreanWordInput.fill("연필");
+  const koreanWordPrompt = await page.locator("#typing-target").getAttribute("aria-label");
+  expect(koreanWordPrompt).not.toBeNull();
+  const partialWord = Array.from(koreanWordPrompt!).slice(0, -1).join("");
+  await koreanWordInput.fill(partialWord);
   await koreanWordInput.press("Space");
-  await expect(koreanWordInput).toHaveValue("연필 ");
-  await expect(page.getByRole("heading", { name: "연습 완료" })).toHaveCount(0);
-  await koreanWordInput.fill("연필");
-  await koreanWordInput.press("Enter");
+  await expect(koreanWordInput).toHaveValue(partialWord + " ");
+  await koreanWordInput.fill(koreanWordPrompt!);
+  await koreanWordInput.press("Space");
   await expect(page.getByRole("heading", { name: "연습 완료" })).toBeVisible();
 
   await page.getByRole("button", { name: "메뉴로 돌아가기" }).click();
@@ -123,13 +151,22 @@ test("Space submission stays limited to Korean sentence practice", async ({ page
   await page.getByRole("combobox", { name: "연습 언어" }).selectOption("en");
   await page.getByRole("button", { name: "← 메뉴" }).click();
   await page.getByRole("button", { name: "영문 단문" }).click();
-  const englishInput = page.getByRole("textbox", { name: "따라 입력하기" });
+  const englishSentenceInput = page.getByRole("textbox", { name: "따라 입력하기" });
   const prompt = await page.locator("#typing-target").getAttribute("aria-label");
   expect(prompt).not.toBeNull();
-  await englishInput.fill(prompt!);
-  await englishInput.press("Space");
-  await expect(englishInput).toHaveValue(`${prompt} `);
+  await englishSentenceInput.fill(prompt!);
+  await englishSentenceInput.press("Space");
+  await expect(englishSentenceInput).toHaveValue("");
   await expect(page.getByRole("heading", { name: "연습 완료" })).toHaveCount(0);
+
+  await englishSentenceInput.press("Escape");
+  await page.getByRole("button", { name: "영문 낱말" }).click();
+  const englishWordInput = page.getByRole("textbox", { name: "따라 입력하기" });
+  const word = await page.locator("#typing-target").getAttribute("aria-label");
+  expect(word).not.toBeNull();
+  await englishWordInput.fill(word!);
+  await englishWordInput.press("Space");
+  await expect(page.getByRole("heading", { name: "연습 완료" })).toBeVisible();
 });
 
 test("arrow navigation selects a language and returns focus to that mode", async ({ page }) => {
