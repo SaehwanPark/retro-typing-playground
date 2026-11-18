@@ -5,11 +5,12 @@ import { useFocus } from "./useFocus";
 type ResultViewProps = {
   title: string;
   score: TypingScore;
+  showSpeed: boolean;
   onRetry: () => void;
   onBack: () => void;
 };
 
-export function ResultView({ title, score, onRetry, onBack }: ResultViewProps) {
+export function ResultView({ title, score, showSpeed, onRetry, onBack }: ResultViewProps) {
   const heading = useFocus<HTMLHeadingElement>();
 
   return (
@@ -20,7 +21,7 @@ export function ResultView({ title, score, onRetry, onBack }: ResultViewProps) {
     }}>
       <h1 ref={heading} tabIndex={-1} aria-describedby="result-title result-hint">연습 완료</h1>
       <p id="result-title" className="lede">{title}</p>
-      <Scoreboard score={score} showTime />
+      <Scoreboard score={score} showSpeed={showSpeed} showTime />
       <div className="result-actions">
         <button type="button" className="button" onClick={onRetry}>다시 연습</button>
         <button type="button" className="button secondary" onClick={onBack}>메뉴로 돌아가기</button>

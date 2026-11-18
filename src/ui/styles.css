@@ -74,6 +74,7 @@ h1 { margin: 0; font-size: clamp(1.55rem, 4vw, 2.55rem); line-height: 1.25; }
 .lesson-button strong, .lesson-button small { display: block; }
 .lesson-button small { margin-top: .25rem; color: var(--quiet); }
 .lesson-button > span:last-child { color: var(--amber); font-family: var(--mono); }
+.activity-menu { display: grid; gap: .55rem; margin-top: 1.45rem; }
 
 .back {
   color: var(--amber);
@@ -149,3 +150,22 @@ kbd:not(:first-child) { margin-inline-start: .55rem; }
 .button:hover { background: #ffdb9e; }
 .button.secondary { background: transparent; color: var(--amber); }
 .button.secondary:hover { background: #302d24; }
+
+.previous-score { border-top: 1px solid var(--line); padding-top: .9rem; }
+.previous-score h2 { font-size: 1rem; margin: 0; }
+.previous-score .scores { margin-top: .7rem; }
+.keyboard-rows { display: grid; gap: .35rem; margin-top: 1rem; }
+.keyboard-row { display: flex; justify-content: center; gap: .25rem; }
+.keyboard-row kbd {
+  display: grid;
+  place-items: center;
+  flex: 0 1 3.6rem;
+  min-width: 0;
+  min-height: 2.5rem;
+  padding: .18rem;
+  margin: 0;
+  text-align: center;
+}
+.keyboard-row kbd > span + span { color: var(--quiet); }
+.keyboard-row .key-target { color: #251908; background: var(--amber); font-weight: 750; }
+.keyboard-row .key-target > span + span { color: inherit; }

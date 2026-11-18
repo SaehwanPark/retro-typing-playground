@@ -3,13 +3,14 @@ import type { KeyboardEvent } from "react";
 import { useFocus } from "./useFocus";
 
 type TypingInputProps = {
+  language: "ko" | "en";
   onInput: (value: string, at: number) => void;
   onSubmit: () => void;
   onBack: () => void;
   onBlockedEdit: () => void;
 };
 
-export function TypingInput({ onInput, onSubmit, onBack, onBlockedEdit }: TypingInputProps) {
+export function TypingInput({ language, onInput, onSubmit, onBack, onBlockedEdit }: TypingInputProps) {
   const field = useFocus<HTMLInputElement>();
   const composing = useRef(false);
   const confirmed = useRef("");
@@ -40,6 +41,7 @@ export function TypingInput({ onInput, onSubmit, onBack, onBlockedEdit }: Typing
       id="typing-input"
       ref={field}
       type="text"
+      lang={language}
       autoComplete="off"
       autoCapitalize="off"
       autoCorrect="off"
