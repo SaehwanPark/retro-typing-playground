@@ -82,7 +82,7 @@ function canRestoreFocus(root: HTMLElement | null, target: HTMLElement): boolean
 
 function restoreScreenFocus(root: HTMLElement | null, screenContent: HTMLDivElement | null, state: PracticeState): void {
   if (state.screen === "settings" && root) {
-    const selected = root.querySelector<HTMLInputElement>(".settings-page .setting-choice:not(:disabled) input:checked");
+    const selected = root.querySelector<HTMLButtonElement>(".settings-menu [data-setting-row]:not(:disabled)");
     const heading = root.querySelector<HTMLElement>(".settings-screen h1[tabindex='-1']");
     (selected ?? heading)?.focus({ preventScroll: true });
     return;
@@ -142,6 +142,8 @@ export function App() {
   }, [interfaceLanguage, practiceLanguage]);
 
   useEffect(() => {
+    let restoreFrame: number | null = null;
+
     function rememberFocus(event: FocusEvent) {
       if (event.target instanceof HTMLElement && canRestoreFocus(shell.current, event.target)) {
         lastAppFocus.current = event.target;
@@ -157,37 +159,45 @@ export function App() {
     }
 
     function restoreFocus() {
-      if (!focusWasLost.current || document.visibilityState === "hidden" || !document.hasFocus()) return;
-      focusWasLost.current = false;
-
-      const active = document.activeElement;
-      if (active instanceof HTMLElement && canRestoreFocus(shell.current, active)) {
-        lastAppFocus.current = active;
-        return;
-      }
-
+      if (!focusWasLost.current || document.visibilityState === "hidden") return;
       const previous = lastAppFocus.current;
       if (previous && canRestoreFocus(shell.current, previous)) {
         previous.focus({ preventScroll: true });
-        return;
+      } else {
+        restoreScreenFocus(shell.current, screenContent.current, stateForFocus.current);
       }
-      restoreScreenFocus(shell.current, screenContent.current, stateForFocus.current);
+      const active = document.activeElement;
+      if (active instanceof HTMLElement && canRestoreFocus(shell.current, active)) {
+        lastAppFocus.current = active;
+        focusWasLost.current = false;
+      }
+    }
+
+    function scheduleFocusRestore() {
+      if (restoreFrame !== null) window.cancelAnimationFrame(restoreFrame);
+      restoreFrame = window.requestAnimationFrame(() => {
+        restoreFrame = null;
+        restoreFocus();
+      });
     }
 
     function handleVisibilityChange() {
       if (document.visibilityState === "hidden") markFocusLost();
-      else restoreFocus();
+      else scheduleFocusRestore();
     }
 
     document.addEventListener("focusin", rememberFocus);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("blur", markFocusLost);
-    window.addEventListener("focus", restoreFocus);
+    window.addEventListener("focus", scheduleFocusRestore);
+    window.addEventListener("pageshow", scheduleFocusRestore);
     return () => {
       document.removeEventListener("focusin", rememberFocus);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("blur", markFocusLost);
-      window.removeEventListener("focus", restoreFocus);
+      window.removeEventListener("focus", scheduleFocusRestore);
+      window.removeEventListener("pageshow", scheduleFocusRestore);
+      if (restoreFrame !== null) window.cancelAnimationFrame(restoreFrame);
     };
   }, []);
 
