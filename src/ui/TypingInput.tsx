@@ -150,7 +150,11 @@ export function TypingInput({ language, target, onInput, onSubmit, onSpaceSubmit
 
         spacePressedDuringComposition.current = false;
         compositionJustEnded.current = false;
-        const spaceAlreadyInserted = spaceInputDuringComposition.current;
+        const selectionStart = event.currentTarget.selectionStart ?? value.length;
+        const selectionEnd = event.currentTarget.selectionEnd ?? value.length;
+        // macOS IME may commit Space before compositionend without a matching input event.
+        const spaceAlreadyInserted = spaceInputDuringComposition.current ||
+          (selectionStart === selectionEnd && selectionStart > 0 && value[selectionStart - 1] === " ");
         spaceInputDuringComposition.current = false;
         applyCompositionSpace(event.currentTarget, performance.now(), spaceAlreadyInserted);
       }}
