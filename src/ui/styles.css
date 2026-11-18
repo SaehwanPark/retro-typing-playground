@@ -1,0 +1,151 @@
+:root {
+  color-scheme: dark;
+  font-family: system-ui, "Malgun Gothic", sans-serif;
+  color: #f5e9d3;
+  background: #151918;
+  --amber: #ffc36b;
+  --quiet: #b9afa1;
+  --line: #4a433a;
+  --panel: #222723;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-block-size: 100vh; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 4px; }
+
+.shell {
+  width: min(56rem, calc(100% - 2rem));
+  margin: clamp(1rem, 9vh, 7rem) auto;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--amber);
+  border-radius: 0.45rem;
+  background: #1a1e1c;
+  box-shadow: 0 1rem 4rem #090b0980;
+}
+
+.masthead, .target-label, .practice-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+
+.masthead {
+  padding: .9rem clamp(1rem, 4vw, 2.25rem);
+  border-bottom: 1px solid var(--line);
+  font: 600 .85rem/1.5 var(--mono);
+}
+
+.brand > span { color: var(--amber); margin-inline-end: .3rem; }
+.local-status { color: var(--quiet); }
+.local-status > span {
+  display: inline-block;
+  background: #9ccd9f;
+  inline-size: .45rem;
+  block-size: .45rem;
+  border-radius: 50%;
+  vertical-align: .14em;
+}
+
+.screen { padding: clamp(1rem, 5vw, 3rem); }
+h1 { margin: 0; font-size: clamp(1.55rem, 4vw, 2.55rem); line-height: 1.25; }
+.lede { color: var(--quiet); margin: .65rem 0 1.6rem; line-height: 1.6; }
+
+.lesson-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: min(100%, 32rem);
+  color: inherit;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-inline-start: .28rem solid var(--amber);
+  border-radius: .2rem;
+  padding: 1rem 1.2rem;
+  text-align: start;
+}
+
+.lesson-button:hover, .lesson-button:focus-visible { background: #302d24; }
+.lesson-button strong, .lesson-button small { display: block; }
+.lesson-button small { margin-top: .25rem; color: var(--quiet); }
+.lesson-button > span:last-child { color: var(--amber); font-family: var(--mono); }
+
+.back {
+  color: var(--amber);
+  background: transparent;
+  border: 0;
+  padding: .35rem 0;
+  margin: 0 0 .75rem;
+}
+
+.target, .scores {
+  margin: 1.35rem 0;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: .25rem;
+}
+
+.target { padding: 1rem clamp(.75rem, 3vw, 1.35rem); }
+.target-label, .entry label, .scores dt { font-size: .9rem; color: var(--quiet); }
+.target-label > span { font-variant-numeric: tabular-nums; }
+.target p {
+  margin: .65rem 0 0;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.target p, .entry input { font-size: 1.35rem; }
+.target .current { border-bottom: 2px solid var(--amber); }
+.target .correct { color: #afe2b0; text-decoration: underline; }
+.target .wrong { color: #ffada6; text-decoration: underline wavy; }
+
+.entry label { display: block; margin-bottom: .5rem; }
+.entry input {
+  width: 100%;
+  padding: .7rem .8rem;
+  background: #111613;
+  border: 1px solid #75644a;
+  border-radius: .2rem;
+  color: inherit;
+  caret-color: var(--amber);
+}
+.entry input:focus { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+.keys { margin: 1rem 0; color: var(--quiet); font-size: .85rem; }
+kbd {
+  display: inline-block;
+  padding: .1rem .35rem;
+  border: 1px solid var(--line);
+  border-radius: .2rem;
+  color: #eee0cb;
+  font: .8rem/1.4 var(--mono);
+}
+kbd:not(:first-child) { margin-inline-start: .55rem; }
+.notice { min-height: 1.4em; margin: 0; color: var(--amber); font-size: .9rem; }
+
+.scores {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0;
+}
+.scores > div { flex: 1 1 7rem; padding: .8rem 1rem; }
+.scores > div + div { border-inline-start: 1px solid var(--line); }
+.scores dd { margin: .25rem 0 0; color: var(--amber); font: 650 1.55rem/1.25 var(--mono); }
+
+.result-actions { display: flex; gap: .7rem; flex-wrap: wrap; }
+.button {
+  padding: .55rem .85rem;
+  border: 1px solid var(--amber);
+  border-radius: .2rem;
+  background: var(--amber);
+  color: #251908;
+  font-weight: 650;
+}
+.button:hover { background: #ffdb9e; }
+.button.secondary { background: transparent; color: var(--amber); }
+.button.secondary:hover { background: #302d24; }
