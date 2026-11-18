@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useCallback, useReducer } from "react";
 import type { Activity, PositionActivity, TextActivity, TextLesson } from "../content/lessons";
 import { libraryEntry } from "../content/articles";
 import type { ArticleActivity } from "../content/articles";
@@ -8,10 +8,14 @@ import { createPositionSession, pressPosition, scorePositions } from "../domain/
 import type { PositionKey, PositionSession } from "../domain/positions";
 import { calculateTypingScore, createPracticeSession, hasReachedEnd, reducePracticeSession } from "../domain/typing";
 import type { PracticeSession, TypingScore } from "../domain/typing";
+import type { PracticeRecord } from "../domain/history";
+
+export const historyEntry = { id: "history", label: "최근 연습 기록", kind: "history" } as const;
 
 export type PracticeState =
   | { screen: "menu"; selected: string | null }
   | { screen: "library"; selected: string | null }
+  | { screen: "history" }
   | {
     screen: "practice";
     activity: TextActivity;
@@ -25,12 +29,14 @@ export type PracticeState =
   | { screen: "article"; activity: ArticleActivity; session: ArticleSession }
   | { screen: "result"; activity: Activity | ArticleActivity; score: TypingScore };
 
+type CompletionTime = { id: string; completedAt: number; at: number };
 export type AppAction =
   | { type: "start"; activity: Activity | ArticleActivity }
   | { type: "open-library" }
+  | { type: "open-history" }
   | { type: "input-changed"; input: string; at: number }
-  | { type: "submit"; at: number }
-  | { type: "position-key"; key: PositionKey; at: number }
+  | ({ type: "submit" } & CompletionTime)
+  | ({ type: "position-key"; key: PositionKey } & CompletionTime)
   | { type: "finish" }
   | { type: "return-to-menu" }
   | { type: "retry" };
@@ -98,10 +104,14 @@ function reduceArticlePractice(state: Extract<PracticeState, { screen: "article"
 
 export function reducePracticeState(state: PracticeState, action: AppAction): PracticeState {
   if (action.type === "open-library") return { screen: "library", selected: null };
+  if (action.type === "open-history") return { screen: "history" };
   if (action.type === "start") return startActivity(action.activity);
   if (state.screen === "menu") return state;
   if (state.screen === "library") {
     return action.type === "return-to-menu" ? { screen: "menu", selected: libraryEntry.id } : state;
+  }
+  if (state.screen === "history") {
+    return action.type === "return-to-menu" ? { screen: "menu", selected: historyEntry.id } : state;
   }
   if (action.type === "return-to-menu") {
     const screen = state.activity.kind === "article" ? "library" : "menu";
@@ -123,6 +133,53 @@ export function reducePracticeState(state: PracticeState, action: AppAction): Pr
   return state;
 }
 
+type SessionState = {
+  screen: PracticeState;
+  pending: readonly PracticeRecord[];
+  latest: PracticeRecord | null;
+};
+
+type SessionAction = AppAction | { type: "saved"; id: string };
+
+function completedRecord(before: PracticeState, after: PracticeState, action: AppAction): PracticeRecord | null {
+  if (action.type !== "submit" && action.type !== "position-key") return null;
+  if (before.screen === "menu" || before.screen === "library" || before.screen === "history" ||
+      before.screen === "result") return null;
+  const score = after.screen === "result" ? after.score
+    : (before.screen === "practice" && after.screen === "practice" && after.round > before.round)
+      ? after.previous : null;
+  if (!score) return null;
+  return {
+    id: action.id,
+    materialId: before.screen === "practice" ? before.lesson.id : before.activity.id,
+    completedAt: action.completedAt,
+    mode: before.activity.kind,
+    language: before.screen === "practice" ? before.lesson.language : "ko",
+    score,
+  };
+}
+
+function reduceSessions(state: SessionState, action: SessionAction): SessionState {
+  if (action.type === "saved") {
+    return { ...state, pending: state.pending.filter((record) => record.id !== action.id) };
+  }
+  const screen = reducePracticeState(state.screen, action);
+  const record = completedRecord(state.screen, screen, action);
+  return record
+    ? { screen, pending: [...state.pending, record], latest: record }
+    : { ...state, screen };
+}
+
 export function usePracticeState() {
-  return useReducer(reducePracticeState, { screen: "menu", selected: null });
+  const [state, dispatch] = useReducer(reduceSessions, {
+    screen: { screen: "menu", selected: null },
+    pending: [],
+    latest: null,
+  });
+  const acknowledge = useCallback((id: string) => dispatch({ type: "saved", id }), []);
+  return { state: state.screen, pending: state.pending[0], latest: state.latest, dispatch, acknowledge };
+}
+
+export function completionTime(at: number): CompletionTime {
+  return { id: crypto.randomUUID(), completedAt: Date.now(), at };
 }

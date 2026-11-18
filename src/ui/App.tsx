@@ -1,9 +1,12 @@
-import { usePracticeState } from "../app/usePractice";
+import { completionTime, historyEntry, usePracticeState } from "../app/usePractice";
+import { useHistory } from "../app/useHistory";
 import { activities } from "../content/lessons";
 import { articles, libraryEntry } from "../content/articles";
 import { splitCharacters } from "../domain/typing";
+import { comparableRecord } from "../domain/history";
 import { ActivityMenu } from "./ActivityMenu";
 import { ArticleView } from "./ArticleView";
+import { HistoryView } from "./HistoryView";
 import { PositionView } from "./PositionView";
 import { PracticeView } from "./PracticeView";
 import { ResultView } from "./ResultView";
@@ -11,6 +14,7 @@ import { ResultView } from "./ResultView";
 const mainActivities = [
   ...activities,
   ...(articles.length ? [{ ...libraryEntry, kind: "library" as const }] : []),
+  historyEntry,
 ];
 const articleList = articles.map((article) => ({
   ...article,
@@ -18,10 +22,11 @@ const articleList = articles.map((article) => ({
 }));
 
 export function App() {
-  const [state, dispatch] = usePracticeState();
+  const { state, pending, latest, dispatch, acknowledge } = usePracticeState();
+  const history = useHistory(pending, acknowledge);
   const back = () => dispatch({ type: "return-to-menu" });
   const onInput = (input: string, at: number) => dispatch({ type: "input-changed", input, at });
-  const onSubmit = (at: number) => dispatch({ type: "submit", at });
+  const onSubmit = (at: number) => dispatch({ type: "submit", ...completionTime(at) });
 
   return (
     <main className="shell">
@@ -37,9 +42,14 @@ export function App() {
           selected={state.selected}
           onStart={(activity) => {
             if (activity.kind === "library") dispatch({ type: "open-library" });
+            else if (activity.kind === "history") dispatch({ type: "open-history" });
             else dispatch({ type: "start", activity });
           }}
         />
+      )}
+
+      {state.screen === "history" && (
+        <HistoryView records={history.records} onClear={history.reset} onBack={back} />
       )}
 
       {state.screen === "library" && (
@@ -75,7 +85,7 @@ export function App() {
         <PositionView
           activity={state.activity}
           session={state.session}
-          onKey={(key, at) => dispatch({ type: "position-key", key, at })}
+          onKey={(key, at) => dispatch({ type: "position-key", key, ...completionTime(at) })}
           onBack={back}
         />
       )}
@@ -85,11 +95,14 @@ export function App() {
           title={state.activity.kind === "sentence" ? "직전 문장" : state.activity.label}
           score={state.score}
           showSpeed={state.activity.kind !== "position"}
+          comparison={latest ? comparableRecord(latest, history.records)?.score : undefined}
           backLabel={state.activity.kind === "article" ? "장문 목록" : "메뉴"}
           onRetry={() => dispatch({ type: "retry" })}
           onBack={back}
         />
       )}
+
+      {history.notice && <p className="storage-notice" role="status">{history.notice}</p>}
     </main>
   );
 }

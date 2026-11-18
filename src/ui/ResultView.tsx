@@ -6,12 +6,13 @@ type ResultViewProps = {
   title: string;
   score: TypingScore;
   showSpeed: boolean;
+  comparison?: TypingScore | undefined;
   backLabel?: string;
   onRetry: () => void;
   onBack: () => void;
 };
 
-export function ResultView({ title, score, showSpeed, backLabel = "메뉴", onRetry, onBack }: ResultViewProps) {
+export function ResultView({ title, score, showSpeed, comparison, backLabel = "메뉴", onRetry, onBack }: ResultViewProps) {
   const heading = useFocus<HTMLHeadingElement>();
 
   return (
@@ -22,7 +23,13 @@ export function ResultView({ title, score, showSpeed, backLabel = "메뉴", onRe
     }}>
       <h1 ref={heading} tabIndex={-1} aria-describedby="result-title result-hint">연습 완료</h1>
       <p id="result-title" className="lede">{title}</p>
-      <Scoreboard score={score} showSpeed={showSpeed} showTime />
+      <Scoreboard score={score} label="이번 결과" showSpeed={showSpeed} showTime />
+      {comparison && (
+        <section className="previous-score" aria-labelledby="comparison-title">
+          <h2 id="comparison-title">같은 모드의 이전 기록</h2>
+          <Scoreboard score={comparison} label="이전 결과" showSpeed={showSpeed} showTime />
+        </section>
+      )}
       <div className="result-actions">
         <button type="button" className="button" onClick={onRetry}>다시 연습</button>
         <button type="button" className="button secondary" onClick={onBack}>{backLabel}로 돌아가기</button>
