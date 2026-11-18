@@ -48,7 +48,7 @@ test("IME composition and its Enter are processed separately from submission", a
     field.dispatchEvent(new CompositionEvent("compositionstart", { bubbles: true }));
     field.value = text;
     field.dispatchEvent(new InputEvent("input", { isComposing: true, bubbles: true }));
-    field.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    field.dispatchEvent(new KeyboardEvent("keydown", { key: "Process", code: "Enter", bubbles: true }));
   }, firstKoreanLesson.text);
   await expect(page.getByText("100%")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "연습 완료" })).toHaveCount(0);
@@ -56,6 +56,9 @@ test("IME composition and its Enter are processed separately from submission", a
 
   await input.dispatchEvent("compositionend", { bubbles: true });
   await expect(page.getByText("100%")).toBeVisible();
+  await input.dispatchEvent("keydown", { key: "Enter", code: "Enter", bubbles: true });
+  await expect(page.getByRole("heading", { name: firstKoreanLesson.title })).toBeVisible();
+  await input.dispatchEvent("keyup", { key: "Enter", code: "Enter", bubbles: true });
   await input.press("Enter");
   await expect(page.getByRole("heading", { name: "창가의 아침" })).toBeVisible();
 });
