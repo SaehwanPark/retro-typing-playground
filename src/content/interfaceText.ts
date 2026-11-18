@@ -52,6 +52,7 @@ export type InterfaceText = Readonly<{
   currentPrompt: string;
   followAlong: string;
   submit: string;
+  spaceSubmitHint: string;
   finishPractice: string;
   currentScore: string;
   previousSentence: string;
@@ -164,6 +165,7 @@ const ko: InterfaceText = {
   currentPrompt: "제시문",
   followAlong: "따라 입력하기",
   submit: "제출",
+  spaceSubmitHint: "제시문을 모두 입력한 뒤 제출",
   finishPractice: "연습 마치기",
   currentScore: "현재 점수",
   previousSentence: "직전 문장",
@@ -289,6 +291,7 @@ const en: InterfaceText = {
   currentPrompt: "Prompt",
   followAlong: "Type the prompt",
   submit: "Submit",
+  spaceSubmitHint: "Submit after completing the Korean sentence",
   finishPractice: "Finish practice",
   currentScore: "Current score",
   previousSentence: "Previous sentence",

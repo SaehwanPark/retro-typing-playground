@@ -7,10 +7,15 @@ type TypingInputProps = {
   onInput: (value: string, at: number) => void;
   onSubmit: () => void;
   onBack: () => void;
+  submitOnSpace?: boolean;
   onBlockedEdit?: () => void;
 };
 
-export function TypingInput({ language, onInput, onSubmit, onBack, onBlockedEdit }: TypingInputProps) {
+function physicalKeyCode(key: string, code: string): string {
+  return key === " " || key === "Spacebar" || code === "Space" ? "Space" : code || key;
+}
+
+export function TypingInput({ language, onInput, onSubmit, onBack, submitOnSpace = false, onBlockedEdit }: TypingInputProps) {
   const field = useFocus<HTMLInputElement>();
   const composing = useRef(false);
   const confirmed = useRef("");
@@ -24,11 +29,13 @@ export function TypingInput({ language, onInput, onSubmit, onBack, onBlockedEdit
 
   function handleKey(event: KeyboardEvent<HTMLInputElement>) {
     const native = event.nativeEvent;
-    const code = event.code || event.key;
+    const code = physicalKeyCode(event.key, event.code);
     const shortcut = event.key === "Enter" || event.key === "Escape";
+    const spaceKey = code === "Space";
     // Some browsers report isComposing=false on the key that ends an IME edit.
     if (composing.current || native.isComposing || native.keyCode === 229) {
-      if (shortcut || code === "Enter" || code === "NumpadEnter" || code === "Escape") {
+      if (shortcut || code === "Enter" || code === "NumpadEnter" || code === "Escape" ||
+          (language === "ko" && spaceKey)) {
         imeShortcuts.current.add(code);
       }
       return;
@@ -46,6 +53,10 @@ export function TypingInput({ language, onInput, onSubmit, onBack, onBlockedEdit
     if (event.key === "Escape") {
       event.preventDefault();
       onBack();
+    }
+    if (language === "ko" && submitOnSpace && spaceKey) {
+      event.preventDefault();
+      onSubmit();
     }
   }
 
@@ -70,7 +81,7 @@ export function TypingInput({ language, onInput, onSubmit, onBack, onBlockedEdit
         if (!composing.current && !native.isComposing) commit(event.currentTarget.value);
       }}
       onKeyDown={handleKey}
-      onKeyUp={(event) => imeShortcuts.current.delete(event.code || event.key)}
+      onKeyUp={(event) => imeShortcuts.current.delete(physicalKeyCode(event.key, event.code))}
       onBlur={() => imeShortcuts.current.clear()}
       onPaste={(event) => {
         event.preventDefault();
