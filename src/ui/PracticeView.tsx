@@ -17,6 +17,7 @@ type PracticeViewProps = {
   context?: ReactNode;
   startedAt?: number | null;
   speedUnit: TypingSpeedUnit;
+  submitOnSpace?: boolean;
   scoreAt?: (now: number) => TypingScore;
   backLabel?: string;
   copy: InterfaceText;
@@ -27,7 +28,7 @@ type PracticeViewProps = {
 };
 
 export function PracticeView({
-  title, language, prompt, session, previous, context, startedAt = session.startedAt, speedUnit,
+  title, language, prompt, session, previous, context, startedAt = session.startedAt, speedUnit, submitOnSpace = false,
   scoreAt, backLabel, onInput, onSubmit, onFinish, onBack, copy,
 }: PracticeViewProps) {
   const [now, setNow] = useState(() => performance.now());
@@ -73,6 +74,7 @@ export function PracticeView({
         <label htmlFor="typing-input">{copy.followAlong}</label>
         <TypingInput
           language={language}
+          submitOnSpace={submitOnSpace && language === "ko" && remaining <= 0}
           onInput={(input, at) => {
             setNow(at);
             setNotice("");
@@ -84,7 +86,11 @@ export function PracticeView({
         />
       </div>
       <div className="practice-actions">
-        <p className="keys" id="typing-hint"><kbd>Enter</kbd> {copy.submit} <kbd>Esc</kbd> {backLabel ?? copy.menu}</p>
+        <p className="keys" id="typing-hint">
+          <kbd>Enter</kbd> {copy.submit}
+          {submitOnSpace && language === "ko" && <>{" · "}<kbd>Space</kbd> {copy.spaceSubmitHint}</>}
+          {" "}<kbd>Esc</kbd> {backLabel ?? copy.menu}
+        </p>
         <button type="button" className="button" onClick={submit}>{copy.submit}</button>
       </div>
       <p className="notice" role="status">{notice}</p>

@@ -236,6 +236,7 @@ export function App() {
           session={currentScreen.session}
           previous={currentScreen.previous}
           speedUnit={typingSpeedUnits[currentScreen.lesson.language]}
+          submitOnSpace={currentScreen.activity.kind === "sentence" && currentScreen.lesson.language === "ko"}
           copy={copy}
           onInput={onInput}
           onSubmit={onSubmit}

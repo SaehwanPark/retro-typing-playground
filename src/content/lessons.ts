@@ -35,8 +35,14 @@ export const firstKoreanLesson: TextLesson = {
   mode: "sentence",
   language: "ko",
   source: "original",
-  text: "한글을 한 줄씩 입력하면 손끝에 작은 리듬이 돌아옵니다.",
+  text: "한글을 한 줄씩 입력하면 손끝에 작은 리듬이 돌아옵니다",
 };
+
+function trimKoreanSentenceEnding(lesson: TextLesson): TextLesson {
+  if (lesson.language !== "ko" || lesson.mode !== "sentence") return lesson;
+  // Korean sentence drills should end on the final word rather than its punctuation mark.
+  return { ...lesson, text: lesson.text.replace(/\p{P}+$/u, "") };
+}
 
 const sourceLessons: readonly TextLesson[] = [
   firstKoreanLesson,
@@ -48,7 +54,7 @@ const sourceLessons: readonly TextLesson[] = [
 ];
 
 export function textActivities(lessons: readonly TextLesson[]): TextActivity[] {
-  const valid = lessons.filter((lesson) =>
+  const valid = lessons.map(trimKoreanSentenceEnding).filter((lesson) =>
     lesson.id.trim() && lesson.title.trim() && lesson.text.trim() && !/[\r\n]/.test(lesson.text)
   );
   const languages = ["ko", "en"] as const;
