@@ -1,18 +1,23 @@
 import {
   colorThemes,
   defaultColorTheme,
+  defaultPracticeFont,
   defaultSize,
   isColorTheme,
+  isPracticeFont,
   isTextSize,
+  practiceFonts,
   textSizes,
 } from "../storage/settingsStorage";
-import type { ColorTheme, TextSize } from "../storage/settingsStorage";
+import type { ColorTheme, PracticeFont, TextSize } from "../storage/settingsStorage";
 
 type DisplaySettingsProps = {
   size: TextSize;
   onSizeChange: (size: TextSize, reset?: boolean) => Promise<void>;
   theme: ColorTheme;
   onThemeChange: (theme: ColorTheme, reset?: boolean) => Promise<void>;
+  font: PracticeFont;
+  onFontChange: (font: PracticeFont, reset?: boolean) => Promise<void>;
   notice: string;
 };
 
@@ -21,6 +26,8 @@ export function DisplaySettings({
   onSizeChange,
   theme,
   onThemeChange,
+  font,
+  onFontChange,
   notice,
 }: DisplaySettingsProps) {
   return (
@@ -48,6 +55,17 @@ export function DisplaySettings({
         </label>
         <button type="button" className="button secondary" onClick={() => void onThemeChange(defaultColorTheme, true)}>
           기본 색상으로 되돌리기
+        </button>
+        <label>연습 글꼴
+          <select value={font} onChange={(event) => {
+            const value = event.currentTarget.value;
+            if (isPracticeFont(value)) void onFontChange(value);
+          }}>
+            {Object.entries(practiceFonts).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select>
+        </label>
+        <button type="button" className="button secondary" onClick={() => void onFontChange(defaultPracticeFont, true)}>
+          기본 글꼴로 되돌리기
         </button>
         {notice && <p className="notice" role="status">{notice}</p>}
       </div>

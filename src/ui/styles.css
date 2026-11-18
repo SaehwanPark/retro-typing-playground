@@ -20,7 +20,10 @@
   --wrong: #ffada6;
   --shadow: #090b0980;
   --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --practice-font: system-ui, "Malgun Gothic", sans-serif;
 }
+
+:root[data-practice-font="serif"] { --practice-font: "Batang", "Times New Roman", serif; }
 
 :root[data-color-theme="paper"] {
   color-scheme: light;
@@ -156,6 +159,7 @@ h1 { margin: 0; font-size: clamp(1.55rem, 4vw, 2.55rem); line-height: 1.25; }
 .target-label, .entry label, .scores dt { font-size: .9rem; color: var(--quiet); }
 .target-label > span { font-variant-numeric: tabular-nums; }
 .target p {
+  font-family: var(--practice-font);
   margin: .65rem 0 0;
   line-height: 1.75;
   overflow-wrap: anywhere;
@@ -168,6 +172,7 @@ h1 { margin: 0; font-size: clamp(1.55rem, 4vw, 2.55rem); line-height: 1.25; }
 
 .entry label { display: block; margin-bottom: .5rem; }
 .entry input {
+  font-family: var(--practice-font);
   width: 100%;
   padding: .7rem .8rem;
   background: var(--field);
@@ -180,6 +185,7 @@ h1 { margin: 0; font-size: clamp(1.55rem, 4vw, 2.55rem); line-height: 1.25; }
 
 .free-practice-label { display: block; margin: 1.25rem 0 .5rem; color: var(--quiet); }
 .free-practice-editor {
+  font-family: var(--practice-font);
   display: block;
   width: 100%;
   min-height: min(56vh, 34rem);
@@ -233,7 +239,7 @@ kbd:not(:first-child) { margin-inline-start: .55rem; }
 .previous-score h2 { font-size: 1rem; margin: 0; }
 .previous-score .scores { margin-top: .7rem; }
 .article-progress { color: var(--quiet); margin: 1rem 0; font-size: .9rem; }
-.article-progress p { margin: .45rem 0; line-height: 1.45; overflow-wrap: anywhere; }
+.article-progress p { font-family: var(--practice-font); margin: .45rem 0; line-height: 1.45; overflow-wrap: anywhere; }
 .article-progress strong { color: var(--ink-strong); margin-inline-end: .3rem; }
 .article-progress p { font-size: calc(var(--typing-size) * .72); }
 .keyboard-rows { display: grid; gap: .35rem; margin-top: 1rem; }

@@ -9,6 +9,7 @@ import {
 import { useHistory } from "../app/useHistory";
 import { useTextSize } from "../app/useTextSize";
 import { useColorTheme } from "../app/useColorTheme";
+import { usePracticeFont } from "../app/usePracticeFont";
 import { useScreenCapture } from "../app/useScreenCapture";
 import { activities } from "../content/lessons";
 import { articles, libraryEntry } from "../content/articles";
@@ -43,8 +44,9 @@ export function App() {
   const history = useHistory(pending, acknowledge);
   const textSize = useTextSize();
   const colorTheme = useColorTheme();
+  const practiceFont = usePracticeFont();
   const screenCapture = useScreenCapture(shell);
-  const settingsNotice = [textSize.notice, colorTheme.notice].filter(Boolean).join(" ");
+  const settingsNotice = [textSize.notice, colorTheme.notice, practiceFont.notice].filter(Boolean).join(" ");
   const back = () => dispatch({ type: "return-to-menu" });
   const onInput = (input: string, at: number) => dispatch({ type: "input-changed", input, at });
   const onSubmit = (at: number) => dispatch({ type: "submit", ...completionTime(at) });
@@ -64,6 +66,8 @@ export function App() {
             onSizeChange={textSize.change}
             theme={colorTheme.theme}
             onThemeChange={colorTheme.change}
+            font={practiceFont.font}
+            onFontChange={practiceFont.change}
             notice={settingsNotice}
           />
         </div>
