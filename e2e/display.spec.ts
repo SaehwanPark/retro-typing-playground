@@ -13,12 +13,13 @@ async function closeSettings(page: Page) {
 
 test("text size changes from settings, survives reload, and can be reset", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "한글 단문" }).click();
+  await page.getByRole("button", { name: "한글 한 줄" }).click();
   const input = page.getByRole("textbox", { name: "따라 입력하기" });
   await input.fill("한글");
   await page.getByRole("button", { name: "환경설정" }).click();
-  await expect(page.getByRole("combobox", { name: "연습 언어" })).toBeDisabled();
-  await page.getByRole("combobox", { name: "연습 글자 크기" }).selectOption("largest");
+  await expect(page.getByRole("button", { name: /연습 언어/ })).toBeDisabled();
+  await page.getByRole("button", { name: /연습 글자 크기/ }).click();
+  await page.getByRole("button", { name: /연습 글자 크기/ }).click();
   await page.getByRole("button", { name: "← 뒤로" }).click();
   await expect(input).toHaveValue("한글");
   await expect(input).toHaveCSS("font-size", "32px");
@@ -26,13 +27,13 @@ test("text size changes from settings, survives reload, and can be reset", async
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), settingsKey)).toContain("largest");
 
   await page.reload();
-  await page.getByRole("button", { name: "한글 단문" }).click();
+  await page.getByRole("button", { name: "한글 한 줄" }).click();
   await expect(input).toHaveCSS("font-size", "32px");
   await page.getByRole("button", { name: "← 메뉴" }).click();
   await openSettings(page);
   await page.getByRole("button", { name: "기본 크기로 되돌리기" }).click();
   await closeSettings(page);
-  await page.getByRole("button", { name: "한글 단문" }).click();
+  await page.getByRole("button", { name: "한글 한 줄" }).click();
   await expect(page.getByRole("textbox", { name: "따라 입력하기" })).toHaveCSS("font-size", "21.6px");
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), settingsKey)).toBeNull();
 });
@@ -40,8 +41,9 @@ test("text size changes from settings, survives reload, and can be reset", async
 test("color theme persists and resets independently from text size", async ({ page }) => {
   await page.goto("/");
   await openSettings(page);
-  await page.getByRole("combobox", { name: "연습 글자 크기" }).selectOption("largest");
-  await page.getByRole("combobox", { name: "색상 테마" }).selectOption("paper");
+  await page.getByRole("button", { name: /연습 글자 크기/ }).click();
+  await page.getByRole("button", { name: /연습 글자 크기/ }).click();
+  await page.getByRole("button", { name: /색상 테마/ }).click();
   await expect(page.locator("html")).toHaveAttribute("data-color-theme", "paper");
   await expect(page.locator(".shell")).toHaveCSS("background-color", "rgb(255, 253, 248)");
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), colorThemeKey)).toContain("paper");
@@ -51,7 +53,7 @@ test("color theme persists and resets independently from text size", async ({ pa
   await openSettings(page);
   await page.getByRole("button", { name: "기본 색상으로 되돌리기" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-color-theme", "terminal");
-  await expect(page.getByRole("combobox", { name: "연습 글자 크기" })).toHaveValue("largest");
+  await expect(page.getByRole("button", { name: /연습 글자 크기/ })).toContainText("아주 크게");
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), colorThemeKey)).toBeNull();
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), settingsKey)).toContain("largest");
 });
@@ -59,18 +61,18 @@ test("color theme persists and resets independently from text size", async ({ pa
 test("practice fonts are kept separately for Korean and English", async ({ page }) => {
   await page.goto("/");
   await openSettings(page);
-  await page.getByRole("combobox", { name: "연습 글꼴 · 한국어" }).selectOption("serif");
-  await page.getByRole("combobox", { name: "연습 언어" }).selectOption("en");
+  await page.getByRole("button", { name: /연습 글꼴 · 한국어/ }).click();
+  await page.getByRole("button", { name: /연습 언어/ }).click();
   await expect(page.locator("html")).toHaveAttribute("data-practice-font", "gothic");
-  await page.getByRole("combobox", { name: "연습 글꼴 · 영어" }).selectOption("serif");
+  await page.getByRole("button", { name: /연습 글꼴 · 영어/ }).click();
   await closeSettings(page);
-  await page.getByRole("button", { name: "영문 단문" }).click();
+  await page.getByRole("button", { name: "영문 한 줄" }).click();
   await expect(page.locator("#typing-target")).toHaveCSS("font-family", 'Georgia, "Times New Roman", serif');
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-practice-language", "en");
   await expect(page.locator("html")).toHaveAttribute("data-practice-font", "serif");
   await openSettings(page);
-  await page.getByRole("combobox", { name: "연습 언어" }).selectOption("ko");
+  await page.getByRole("button", { name: /연습 언어/ }).click();
   await expect(page.locator("html")).toHaveAttribute("data-practice-font", "serif");
   await page.getByRole("button", { name: "환경설정을 기본값으로 되돌리기" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-practice-font", "gothic");
@@ -85,7 +87,7 @@ test("a saved font from the earlier shared setting is retained for both language
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("data-practice-font", "serif");
   await page.getByRole("button", { name: "환경설정" }).click();
-  await page.getByRole("combobox", { name: "연습 언어" }).selectOption("en");
+  await page.getByRole("button", { name: /연습 언어/ }).click();
   await expect(page.locator("html")).toHaveAttribute("data-practice-font", "serif");
 });
 
@@ -95,7 +97,7 @@ test("invalid theme data falls back without overwriting it", async ({ page }) =>
   await expect(page.locator("html")).toHaveAttribute("data-color-theme", "terminal");
   await openSettings(page);
   await expect(page.getByRole("status")).toHaveText("저장된 환경설정을 읽지 못했습니다. 기본값을 사용하며 기존 값은 보존했습니다.");
-  await page.getByRole("combobox", { name: "색상 테마" }).selectOption("paper");
+  await page.getByRole("button", { name: /색상 테마/ }).click();
 
   await expect(page.locator("html")).toHaveAttribute("data-color-theme", "paper");
   await expect(page.getByRole("status")).toHaveText("설정을 저장하지 못했습니다. 현재 탭에서만 적용됩니다.");
@@ -112,7 +114,7 @@ test("a denied practice font write applies in this tab and reports the failure",
   }, practiceFontKey);
   await page.goto("/");
   await openSettings(page);
-  await page.getByRole("combobox", { name: "연습 글꼴 · 한국어" }).selectOption("serif");
+  await page.getByRole("button", { name: /연습 글꼴 · 한국어/ }).click();
   await expect(page.locator("html")).toHaveAttribute("data-practice-font", "serif");
   await expect(page.getByRole("status")).toHaveText("설정을 저장하지 못했습니다. 현재 탭에서만 적용됩니다.");
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), practiceFontKey)).toBeNull();
@@ -121,14 +123,14 @@ test("a denied practice font write applies in this tab and reports the failure",
 test("practice font applies to practice text and editors while menus keep their font", async ({ page }) => {
   await page.goto("/");
   await openSettings(page);
-  await page.getByRole("combobox", { name: "연습 글꼴 · 한국어" }).selectOption("serif");
+  await page.getByRole("button", { name: /연습 글꼴 · 한국어/ }).click();
   await closeSettings(page);
   const menuFont = await page.locator(".lesson-button").first().evaluate((element) => getComputedStyle(element).fontFamily);
   expect(menuFont).not.toContain("Batang");
 
-  await page.getByRole("button", { name: "장문 고르기" }).click();
-  await page.getByRole("button", { name: "새벽 강변" }).click();
-  await expect(page.locator(".article-progress p").first()).toHaveCSS("font-family", 'Batang, "Times New Roman", serif');
+  await page.getByRole("button", { name: "짧은 글" }).click();
+  await page.getByRole("button", { name: /새벽 강변/ }).click();
+  await expect(page.locator(".passage-page li").first()).toHaveCSS("font-family", 'Batang, "Times New Roman", serif');
   await expect(page.locator("#typing-target")).toHaveCSS("font-family", 'Batang, "Times New Roman", serif');
 
   await page.goto("/");

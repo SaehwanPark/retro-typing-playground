@@ -1,0 +1,131 @@
+[
+  {
+    "id": "rain-window",
+    "title": "The rain window",
+    "language": "en",
+    "length": "short",
+    "genre": "literature",
+    "source": "original",
+    "paragraphs": [
+      "Rain began before the bakery opened, tracing thin lines down the glass.",
+      "I sat by the window with a cup that had already gone cold.",
+      "Across the street a cyclist waited under a narrow awning and laughed at the weather.",
+      "A bus arrived, paused, and left without taking anyone away.",
+      "By noon the clouds were tired and the street was full of reflected light.",
+      "I wrote three sentences in my notebook and crossed out only one.",
+      "When the rain stopped, the whole block smelled like stone and fresh bread."
+    ]
+  },
+  {
+    "id": "small-library-en",
+    "title": "The small library",
+    "language": "en",
+    "length": "short",
+    "genre": "life",
+    "source": "original",
+    "paragraphs": [
+      "The library on the corner opens early even on Saturdays.",
+      "I returned two books and chose a chair where the morning sun could reach the page.",
+      "Someone nearby turned a newspaper slowly, as if each page mattered.",
+      "The librarian stacked new arrivals without making a sound.",
+      "When the light moved across the table, I picked one more book and left.",
+      "A small bell rang behind me as the door closed.",
+      "At the end of the street I could still see the warm windows of the reading room."
+    ]
+  },
+  {
+    "id": "night-train-en",
+    "title": "The night train",
+    "language": "en",
+    "length": "short",
+    "genre": "literature",
+    "source": "original",
+    "paragraphs": [
+      "The night train left the city with rain on its windows.",
+      "I watched the lights of small towns appear and disappear between fields.",
+      "A passenger across the aisle read a paper map and marked it with a pencil.",
+      "The conductor passed twice and each time the carriage grew quieter.",
+      "Somewhere after midnight the rain stopped and the sky opened.",
+      "I could see a single bright star above the dark line of the hills.",
+      "I kept that star in view until the train turned east toward morning."
+    ]
+  },
+  {
+    "id": "signal-stars",
+    "title": "Signals from the night sky",
+    "language": "en",
+    "length": "short",
+    "genre": "nonfiction",
+    "source": "original",
+    "paragraphs": [
+      "Most stars are too faint to see from a city street.",
+      "Light from buildings and cars makes the sky look emptier than it is.",
+      "To observe the night sky, find a place away from direct lamps.",
+      "Give your eyes time to adjust and keep your phone screen off.",
+      "A pair of binoculars can reveal craters on the moon and the moons of Jupiter.",
+      "Astronomers also study radio signals that human eyes cannot detect.",
+      "A large dish collects those waves and turns them into data.",
+      "Looking up is a practice in patience as much as a search for answers."
+    ]
+  },
+  {
+    "id": "last-arcade",
+    "title": "The last arcade",
+    "language": "en",
+    "length": "short",
+    "genre": "subculture",
+    "source": "original",
+    "paragraphs": [
+      "The arcade at the end of the street still opens after school.",
+      "Most machines are older than the students who play them.",
+      "A crowd gathers around the fighting game cabinet every Friday.",
+      "The owner keeps a notebook of high scores and repairs each stick by hand.",
+      "I learned to play there from someone who never told me their name.",
+      "We only spoke through the rhythm of buttons and the glow of the screen.",
+      "When the shutters come down, the alley keeps the sound of the last match."
+    ]
+  },
+  {
+    "id": "long-way-home",
+    "title": "The long way home",
+    "language": "en",
+    "length": "long",
+    "genre": "literature",
+    "source": "original",
+    "paragraphs": [
+      "The road home began at the edge of a town I had never planned to visit.",
+      "I had missed the last bus by four minutes and the station clock refused to argue.",
+      "An old woman selling apples told me the next bus would come in the morning.",
+      "I bought two apples and asked whether there was a path along the river.",
+      "She pointed past the market and said the walk was longer but easier to remember.",
+      "I started walking while the sky was still bright enough to show the way.",
+      "The river moved beside the road with a sound like pages being turned.",
+      "Small houses stood behind fences, each with a garden and a chair facing the water.",
+      "A dog followed me for a hundred steps and then returned to its gate.",
+      "At the first bridge I stopped to read a sign about the town's old ferry.",
+      "The ferry had carried workers across the river before the bridge was built.",
+      "Now only a few posts remained in the water, dark and smooth with age.",
+      "I kept walking and the road slowly climbed away from the river.",
+      "Fields opened on both sides, and the wind carried the smell of cut grass.",
+      "A farmer on a tractor raised one hand as he passed.",
+      "I raised mine in return and felt oddly included in the evening.",
+      "The light turned gold, then orange, then a quiet blue.",
+      "I began to recognize the shape of the hills ahead and knew the town was close.",
+      "At a bend in the road I found a bench under a tree.",
+      "I sat down and ate the second apple while the first stars appeared.",
+      "A cyclist stopped to ask if I needed help and laughed when I said I was walking home.",
+      "He told me the road would join the highway in another hour.",
+      "I thanked him and chose the smaller lane behind the orchard instead.",
+      "The lane was darker, but it passed a house where someone was practicing the piano.",
+      "I walked slowly so the music would last a little longer.",
+      "The piano stopped, a door opened, and a cat stepped out into the road.",
+      "It looked at me once and disappeared between the trees.",
+      "Beyond the orchard the streetlights of my own town finally came into view.",
+      "They were not very bright, but they were the lights I knew.",
+      "I reached the front door long after dinner and long before midnight.",
+      "My shoes were dusty and my legs were tired.",
+      "Still, I stayed outside for a moment and listened to the night.",
+      "The long way home had given the day a better ending than the bus."
+    ]
+  }
+]

@@ -14,17 +14,17 @@ import { useTextSize } from "../app/useTextSize";
 import { useColorTheme } from "../app/useColorTheme";
 import { usePracticeFont } from "../app/usePracticeFont";
 import { useScreenCapture } from "../app/useScreenCapture";
-import { activities } from "../content/lessons";
+import { activities } from "../content/library";
 import type { Activity, Language } from "../content/lessons";
-import { articles, libraryEntry } from "../content/articles";
-import type { ArticleActivity } from "../content/articles";
+import { longPassageEntry, passagesFor, shortPassageEntry } from "../content/passages";
+import type { PassageActivity } from "../content/passages";
 import { interfaceText } from "../content/interfaceText";
-import { splitCharacters, hasReachedEnd } from "../domain/typing";
+import { hasReachedEnd } from "../domain/typing";
 import type { PositionKey } from "../domain/positions";
 import { comparableRecord } from "../domain/history";
 import { defaultColorTheme, defaultSize } from "../storage/settingsStorage";
 import { ActivityMenu } from "./ActivityMenu";
-import { ArticleView } from "./ArticleView";
+import { PassageView } from "./PassageView";
 import { ChallengeView } from "./ChallengeView";
 import { DisplaySettings } from "./DisplaySettings";
 import { HistoryView } from "./HistoryView";
@@ -37,7 +37,7 @@ import { playCompletionTone } from "./completionSound";
 
 function shouldPlayForCurrentSubmission(state: ReturnType<typeof usePracticeState>["state"], input?: string): boolean {
   if (state.screen === "practice") return hasReachedEnd(state.lesson.text, input ?? state.session.input);
-  if (state.screen === "article") {
+  if (state.screen === "passage") {
     const target = state.activity.lines[state.session.lineIndex];
     return target !== undefined && hasReachedEnd(target, input ?? state.session.line.input);
   }
@@ -48,8 +48,8 @@ function contentState(state: PracticeState) {
   return state.screen === "settings" ? state.returnState : state;
 }
 
-function activityLanguage(activity: Activity | ArticleActivity): Language {
-  if (activity.kind === "article") return activity.language;
+function activityLanguage(activity: Activity | PassageActivity): Language {
+  if (activity.kind === "passage") return activity.language;
   if (activity.kind === "position") return "ko";
   return activity.lessons[0]?.language ?? "ko";
 }
@@ -61,7 +61,7 @@ function restoreContentFocus(root: HTMLDivElement | null, state: PracticeState):
   if (visible.screen === "menu" || visible.screen === "library") {
     target = Array.from(root.querySelectorAll<HTMLElement>("button[data-activity]"))
       .find((button) => button.dataset.activity === visible.selected) ?? null;
-  } else if (visible.screen === "practice" || visible.screen === "article") {
+  } else if (visible.screen === "practice" || visible.screen === "passage") {
     target = root.querySelector("#typing-input");
   } else if (visible.screen === "free-practice") {
     target = root.querySelector("#free-practice-input");
@@ -111,7 +111,7 @@ export function App() {
   const practiceFont = usePracticeFont(practiceLanguage);
   const screenCapture = useScreenCapture(shell);
   const settingsReturnScreen = state.screen === "settings" ? state.returnState.screen : null;
-  const practiceLanguageLocked = settingsReturnScreen === "practice" || settingsReturnScreen === "article" ||
+  const practiceLanguageLocked = settingsReturnScreen === "practice" || settingsReturnScreen === "passage" ||
     settingsReturnScreen === "positions" || settingsReturnScreen === "challenge" || settingsReturnScreen === "result";
   const settingsNotice = [appPreferences.notice, textSize.notice, colorTheme.notice, practiceFont.notice]
     .filter(Boolean).join(" ");
@@ -215,10 +215,12 @@ export function App() {
     if (activity.kind === "position") return practiceLanguage === "ko";
     return activity.lessons.some((lesson) => lesson.language === practiceLanguage);
   });
-  const matchingArticles = articles.filter((article) => article.language === practiceLanguage);
+  const shortPassages = passagesFor(practiceLanguage, "short");
+  const longPassages = passagesFor(practiceLanguage, "long");
   const mainActivities = [
     ...languageActivities,
-    ...(matchingArticles.length ? [{ ...libraryEntry, kind: "library" as const }] : []),
+    ...(shortPassages.length ? [{ ...shortPassageEntry }] : []),
+    ...(longPassages.length ? [{ ...longPassageEntry }] : []),
     ...(practiceLanguage === "ko" ? [challengeEntry] : []),
     freePracticeEntry,
     historyEntry,
@@ -227,12 +229,13 @@ export function App() {
     ...activity,
     label: copy.activityLabel(activity.id, activity.label),
   }));
-  const articleList = matchingArticles.map((article) => ({
-    ...article,
-    label: copy.activityLabel(article.id, article.label),
-    detail: interfaceLanguage === "ko"
-      ? `${article.lines.reduce((total, line) => total + splitCharacters(line).length, 0)}자`
-      : `${article.lines.reduce((total, line) => total + splitCharacters(line).length, 0)} characters`,
+  const libraryPassages = currentScreen.screen === "library"
+    ? passagesFor(practiceLanguage, currentScreen.length)
+    : [];
+  const passageList = libraryPassages.map((passage) => ({
+    ...passage,
+    label: copy.activityLabel(passage.id, passage.label),
+    detail: `${copy.genreLabel(passage.genre)} · ${passage.characterCount}${copy.charactersSuffix}`,
   }));
 
   const historyMessage = history.notice === "history-save-failed" ? copy.historySaveFailed :
@@ -271,7 +274,8 @@ export function App() {
           selected={currentScreen.selected}
           copy={copy}
           onStart={(activity) => {
-            if (activity.kind === "library") dispatch({ type: "open-library" });
+            if (activity.kind === "short-library") dispatch({ type: "open-library", length: "short" });
+            else if (activity.kind === "long-library") dispatch({ type: "open-library", length: "long" });
             else if (activity.kind === "challenge") dispatch({ type: "open-challenge" });
             else if (activity.kind === "free-practice") dispatch({ type: "open-free-practice" });
             else if (activity.kind === "history") dispatch({ type: "open-history" });
@@ -297,8 +301,8 @@ export function App() {
 
       {currentScreen.screen === "library" && (
         <ActivityMenu
-          title={copy.chooseArticle}
-          activities={articleList}
+          title={currentScreen.length === "short" ? copy.chooseShortPassage : copy.chooseLongPassage}
+          activities={passageList}
           selected={currentScreen.selected}
           copy={copy}
           onStart={(activity) => dispatch({ type: "start", activity })}
@@ -323,8 +327,8 @@ export function App() {
         />
       )}
 
-      {currentScreen.screen === "article" && (
-        <ArticleView
+      {currentScreen.screen === "passage" && (
+        <PassageView
           activity={currentScreen.activity}
           session={currentScreen.session}
           onInput={onInput}
@@ -347,13 +351,15 @@ export function App() {
 
       {currentScreen.screen === "result" && (
         <ResultView
-          title={currentScreen.activity.kind === "sentence" ? copy.previousSentence : copy.activityLabel(currentScreen.activity.id, currentScreen.activity.label)}
+          title={currentScreen.activity.kind === "line" ? copy.previousSentence : copy.activityLabel(currentScreen.activity.id, currentScreen.activity.label)}
           score={currentScreen.score}
           showSpeed={currentScreen.activity.kind !== "position"}
           language={activityLanguage(currentScreen.activity)}
           speedUnit={typingSpeedUnits[activityLanguage(currentScreen.activity)]}
           comparison={latest ? comparableRecord(latest, history.records)?.score : undefined}
-          backLabel={currentScreen.activity.kind === "article" ? copy.chooseArticle : copy.menu}
+          backLabel={currentScreen.activity.kind === "passage"
+            ? currentScreen.activity.length === "short" ? copy.shortPassage : copy.longPassage
+            : copy.menu}
           onRetry={() => dispatch({ type: "retry" })}
           onBack={back}
           copy={copy}

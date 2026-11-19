@@ -46,7 +46,10 @@ export type InterfaceText = Readonly<{
   settingsHelp: string;
   saveFailed: string;
   invalidSettings: string;
-  chooseArticle: string;
+  chooseShortPassage: string;
+  chooseLongPassage: string;
+  shortPassage: string;
+  longPassage: string;
   choosePractice: string;
   select: string;
   currentPrompt: string;
@@ -104,9 +107,12 @@ export type InterfaceText = Readonly<{
   positionInstruction: string;
   tryAgain: string;
   nextKey: string;
-  articleCurrentLine: string;
-  articleCompletedLine: string;
-  articleNextLine: string;
+  passagePage: (page: number, total: number) => string;
+  charactersSuffix: string;
+  passageCurrentLine: string;
+  passageCompletedLine: string;
+  passageNextLine: string;
+  genreLabel: (genre: string) => string;
   screenCaptureError: string;
   screenCaptureSuccess: string;
   screenCaptureUnsupported: string;
@@ -159,7 +165,10 @@ const ko: InterfaceText = {
   settingsHelp: "↑/↓로 항목을 이동하고 ←/→ 또는 Enter/Space로 값을 바꾸세요. 초기화 항목은 Enter/Space로 실행합니다. Esc로 이전 화면으로 돌아가며 변경 사항은 이 브라우저에 저장됩니다.",
   saveFailed: "설정을 저장하지 못했습니다. 현재 탭에서만 적용됩니다.",
   invalidSettings: "저장된 환경설정을 읽지 못했습니다. 기본값을 사용하며 기존 값은 보존했습니다.",
-  chooseArticle: "장문 고르기",
+  chooseShortPassage: "짧은 글 고르기",
+  chooseLongPassage: "긴 글 고르기",
+  shortPassage: "짧은 글",
+  longPassage: "긴 글",
   choosePractice: "연습 종류 고르기",
   select: "선택",
   currentPrompt: "제시문",
@@ -168,7 +177,7 @@ const ko: InterfaceText = {
   spaceSubmitHint: "제시문을 모두 입력한 뒤 제출",
   finishPractice: "연습 마치기",
   currentScore: "현재 점수",
-  previousSentence: "직전 문장",
+  previousSentence: "직전 한 줄",
   previousScore: "직전 점수",
   accuracy: "정확도",
   elapsedTime: "경과 시간",
@@ -178,7 +187,7 @@ const ko: InterfaceText = {
   sameModePrevious: "같은 모드의 이전 기록",
   previousResult: "이전 결과",
   practiceAgain: "다시 연습",
-  returnTo: (destination) => destination === "메뉴" ? "메뉴로 돌아가기" : "장문 목록으로 돌아가기",
+  returnTo: (destination) => destination === "메뉴" ? "메뉴로 돌아가기" : `${destination}으로 돌아가기`,
   openPractice: "연습으로 돌아가기",
   blockedPracticeInput: "연습 문장은 키보드로 직접 입력하세요.",
   remainingCharacters: (count) => `제시문이 ${count}자 남았습니다.`,
@@ -217,27 +226,35 @@ const ko: InterfaceText = {
   positionInstruction: "강조된 위치의 키를 누르세요.",
   tryAgain: "다시 시도하세요.",
   nextKey: "다음 키",
-  articleCurrentLine: "현재 줄",
-  articleCompletedLine: "완료한 줄",
-  articleNextLine: "다음 줄",
+  passagePage: (page, total) => `${page} / ${total} 묶음`,
+  charactersSuffix: "자",
+  passageCurrentLine: "현재 줄",
+  passageCompletedLine: "완료한 줄",
+  passageNextLine: "다음 줄",
+  genreLabel: (genre) => ({
+    literature: "문학",
+    nonfiction: "비문학",
+    technology: "기술",
+    life: "생활",
+    subculture: "서브컬쳐",
+  }[genre] ?? genre),
   screenCaptureError: "화면을 저장하지 못했습니다. 다시 시도하세요.",
   screenCaptureSuccess: "화면을 PNG로 저장했습니다.",
   screenCaptureUnsupported: "이 브라우저에서는 화면 저장을 지원하지 않습니다.",
   activityLabel: (id, fallback) => ({
-    "ko-sentence": "한글 단문",
+    "ko-line": "한글 한 줄",
     "ko-word": "한글 낱말",
-    "en-sentence": "영문 단문",
+    "en-line": "영문 한 줄",
     "en-word": "영문 낱말",
     "ko-positions": "두벌식 자리 연습",
-    "article-library": "장문 고르기",
+    "short-library": "짧은 글",
+    "long-library": "긴 글",
     challenge: "30초 낱말 도전",
     "free-practice": "연습장",
     history: "최근 연습 기록",
     settings: "환경설정",
-    "dawn-river": "새벽 강변",
-    "small-library": "작은 도서관",
   }[id] ?? fallback),
-  modeLabel: (mode) => ({ word: "낱말", sentence: "단문", article: "장문", position: "자리" }[mode] ?? mode),
+  modeLabel: (mode) => ({ word: "낱말", line: "한 줄", short: "짧은 글", long: "긴 글", position: "자리" }[mode] ?? mode),
 };
 
 const en: InterfaceText = {
@@ -285,7 +302,10 @@ const en: InterfaceText = {
   settingsHelp: "Use Up/Down to move between settings and Left/Right or Enter/Space to change a value. Enter/Space runs reset actions. Press Escape to return. Changes are saved in this browser.",
   saveFailed: "Settings could not be saved. Changes apply only in this tab.",
   invalidSettings: "Saved settings could not be read. Defaults are in use; the stored value was preserved.",
-  chooseArticle: "Choose a passage",
+  chooseShortPassage: "Choose a short passage",
+  chooseLongPassage: "Choose a long passage",
+  shortPassage: "Short passages",
+  longPassage: "Long passages",
   choosePractice: "Choose practice",
   select: "Select",
   currentPrompt: "Prompt",
@@ -294,7 +314,7 @@ const en: InterfaceText = {
   spaceSubmitHint: "Submit after completing the prompt",
   finishPractice: "Finish practice",
   currentScore: "Current score",
-  previousSentence: "Previous sentence",
+  previousSentence: "Previous line",
   previousScore: "Previous score",
   accuracy: "Accuracy",
   elapsedTime: "Elapsed time",
@@ -343,27 +363,35 @@ const en: InterfaceText = {
   positionInstruction: "Press the highlighted key.",
   tryAgain: "Try again.",
   nextKey: "Next key",
-  articleCurrentLine: "Current line",
-  articleCompletedLine: "Completed line",
-  articleNextLine: "Next line",
+  passagePage: (page, total) => `Page ${page} / ${total}`,
+  charactersSuffix: " characters",
+  passageCurrentLine: "Current line",
+  passageCompletedLine: "Completed line",
+  passageNextLine: "Next line",
+  genreLabel: (genre) => ({
+    literature: "Literature",
+    nonfiction: "Nonfiction",
+    technology: "Technology",
+    life: "Life",
+    subculture: "Subculture",
+  }[genre] ?? genre),
   screenCaptureError: "Could not save the screen. Try again.",
   screenCaptureSuccess: "Saved the screen as a PNG.",
   screenCaptureUnsupported: "Screen capture is not supported in this browser.",
   activityLabel: (id, fallback) => ({
-    "ko-sentence": "Korean sentences",
+    "ko-line": "Korean one-line drills",
     "ko-word": "Korean words",
-    "en-sentence": "English sentences",
+    "en-line": "English one-line drills",
     "en-word": "English words",
     "ko-positions": "Korean keyboard positions",
-    "article-library": "Choose a passage",
+    "short-library": "Short passages",
+    "long-library": "Long passages",
     challenge: "30-second word challenge",
     "free-practice": "Free typing",
     history: "Recent practice",
     settings: "Settings",
-    "dawn-river": "Dawn by the river",
-    "small-library": "The little library",
   }[id] ?? fallback),
-  modeLabel: (mode) => ({ word: "Words", sentence: "Sentences", article: "Passage", position: "Positions" }[mode] ?? mode),
+  modeLabel: (mode) => ({ word: "Words", line: "One line", short: "Short passages", long: "Long passages", position: "Positions" }[mode] ?? mode),
 };
 
 export function interfaceText(language: Language): InterfaceText {

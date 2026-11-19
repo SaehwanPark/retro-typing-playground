@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { firstKoreanLesson } from "../src/content/lessons";
+import { firstKoreanLesson } from "../src/content/library";
 import { countKoreanKeystrokes } from "../src/domain/typing";
 
 test("a new profile can practice from the build with only loopback access", async ({ page, baseURL }) => {
@@ -8,7 +8,7 @@ test("a new profile can practice from the build with only loopback access", asyn
     return url.origin === baseURL ? route.continue() : route.abort();
   });
   await page.goto("/");
-  const menu = page.getByRole("button", { name: /한글 단문/ });
+  const menu = page.getByRole("button", { name: /한글 한 줄/ });
   await expect(menu).toBeFocused();
   await page.keyboard.press("Enter");
 
@@ -41,7 +41,7 @@ test("a new profile can practice from the build with only loopback access", asyn
 
 test("IME composition and its Enter are processed separately from submission", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: /한글 단문/ }).click();
+  await page.getByRole("button", { name: /한글 한 줄/ }).click();
   const input = page.getByRole("textbox", { name: "따라 입력하기" });
 
   await input.evaluate((element, text) => {
@@ -66,7 +66,7 @@ test("IME composition and its Enter are processed separately from submission", a
 
 test("Korean sentence Space submits only after the prompt is complete", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: /한글 단문/ }).click();
+  await page.getByRole("button", { name: /한글 한 줄/ }).click();
   const input = page.getByRole("textbox", { name: "따라 입력하기" });
   await expect(page.locator("#typing-target")).toHaveAttribute("aria-label", firstKoreanLesson.text);
 
@@ -85,7 +85,7 @@ test("Korean sentence Space submits only after the prompt is complete", async ({
 test("Korean CPM displays two-set keystrokes per minute", async ({ page }) => {
   await page.clock.install();
   await page.goto("/");
-  await page.getByRole("button", { name: /한글 단문/ }).click();
+  await page.getByRole("button", { name: /한글 한 줄/ }).click();
   const input = page.getByRole("textbox", { name: "따라 입력하기" });
   const prompt = await page.locator("#typing-target").getAttribute("aria-label");
   expect(prompt).not.toBeNull();
@@ -103,7 +103,7 @@ test("Korean CPM displays two-set keystrokes per minute", async ({ page }) => {
 
 test("a Space key used to complete Korean IME input submits once", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: /한글 단문/ }).click();
+  await page.getByRole("button", { name: /한글 한 줄/ }).click();
   const input = page.getByRole("textbox", { name: "따라 입력하기" });
 
   await input.evaluate((element, text) => {
@@ -129,7 +129,7 @@ test("a Space key used to complete Korean IME input submits once", async ({ page
 
 test("an IME-ending Space inserts one separator while the prompt continues", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: /한글 단문/ }).click();
+  await page.getByRole("button", { name: /한글 한 줄/ }).click();
   const input = page.getByRole("textbox", { name: "따라 입력하기" });
   const prefixAndComposition = Array.from(firstKoreanLesson.text).slice(0, 3).join("");
 
@@ -168,9 +168,9 @@ test("Space submits completed Korean and English practice tasks", async ({ page 
 
   await page.getByRole("button", { name: "메뉴로 돌아가기" }).click();
   await page.getByRole("button", { name: "환경설정" }).click();
-  await page.getByRole("combobox", { name: "연습 언어" }).selectOption("en");
+  await page.getByRole("button", { name: /연습 언어/ }).click();
   await page.getByRole("button", { name: "← 메뉴" }).click();
-  await page.getByRole("button", { name: "영문 단문" }).click();
+  await page.getByRole("button", { name: "영문 한 줄" }).click();
   const englishSentenceInput = page.getByRole("textbox", { name: "따라 입력하기" });
   const prompt = await page.locator("#typing-target").getAttribute("aria-label");
   expect(prompt).not.toBeNull();
@@ -192,10 +192,10 @@ test("Space submits completed Korean and English practice tasks", async ({ page 
 test("arrow navigation selects a language and returns focus to that mode", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "환경설정" }).click();
-  await page.getByRole("combobox", { name: "연습 언어" }).selectOption("en");
+  await page.getByRole("button", { name: /연습 언어/ }).click();
   await page.getByRole("button", { name: "← 메뉴" }).click();
   await page.keyboard.press("ArrowDown");
-  await expect(page.getByRole("button", { name: "영문 단문" })).toBeFocused();
+  await expect(page.getByRole("button", { name: "영문 한 줄" })).toBeFocused();
   await page.keyboard.press("ArrowDown");
   const wordMode = page.getByRole("button", { name: "영문 낱말" });
   await expect(wordMode).toBeFocused();

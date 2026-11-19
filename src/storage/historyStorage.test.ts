@@ -81,3 +81,40 @@ it("accepts v2 score records with both speed representations", () => {
   expect(read.records[0]?.score.keystrokeCount).toBe(6);
   expect(read.records[0]?.score.keystrokesPerMinute).toBe(180);
 });
+
+it("maps earlier sentence and article modes to line and long records", () => {
+  const read = decodeHistory(JSON.stringify({
+    version: 2,
+    records: [
+      {
+        id: "sentence",
+        materialId: "legacy-sentence",
+        completedAt: 1,
+        mode: "sentence",
+        language: "ko",
+        score: {
+          accuracy: 100, correctCount: 1, typedCount: 1, elapsedMs: 1_000,
+          charactersPerMinute: null, keystrokeCount: 3, keystrokesPerMinute: 180,
+        },
+      },
+      {
+        id: "article",
+        materialId: "legacy-article",
+        completedAt: 2,
+        mode: "article",
+        language: "ko",
+        score: {
+          accuracy: 100, correctCount: 1, typedCount: 1, elapsedMs: 1_000,
+          charactersPerMinute: null, keystrokeCount: 3, keystrokesPerMinute: 180,
+        },
+      },
+    ],
+  }));
+
+  expect(read.ok).toBe(true);
+  if (!read.ok) return;
+  expect(read.records.map((record) => [record.id, record.mode])).toEqual([
+    ["article", "long"],
+    ["sentence", "line"],
+  ]);
+});

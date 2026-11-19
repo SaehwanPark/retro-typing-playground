@@ -4,12 +4,12 @@ import { historyKey } from "../src/storage/historyStorage";
 
 test("settings are reachable by keyboard and return focus to the home entry", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("button", { name: "한글 단문" })).toBeFocused();
+  await expect(page.getByRole("button", { name: "한글 한 줄" })).toBeFocused();
   await page.keyboard.press("ArrowUp");
   const settingsEntry = page.getByRole("button", { name: "환경설정" });
   await expect(settingsEntry).toBeFocused();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("heading", { name: "환경설정" })).toBeFocused();
+  await expect(page.getByRole("button", { name: /인터페이스 언어/ })).toBeFocused();
 
   await page.keyboard.press("Escape");
   await expect(settingsEntry).toBeFocused();
@@ -18,24 +18,25 @@ test("settings are reachable by keyboard and return focus to the home entry", as
 test("completion sound is off by default", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "환경설정" }).click();
-  await expect(page.getByRole("combobox", { name: "완료 효과음" })).toHaveValue("off");
+  await expect(page.getByRole("button", { name: /완료 효과음/ })).toContainText("끔");
 });
 
 test("interface and practice languages are independent and filter home content", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "환경설정" }).click();
-  await page.getByRole("combobox", { name: "인터페이스 언어" }).selectOption("en");
+  await page.getByRole("button", { name: /인터페이스 언어/ }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  await page.getByRole("combobox", { name: "Practice language" }).selectOption("en");
+  await page.getByRole("button", { name: /Practice language/ }).click();
   await expect(page.locator("html")).toHaveAttribute("data-practice-language", "en");
   await page.getByRole("button", { name: "← Menu" }).click();
 
   await expect(page.getByRole("heading", { name: "Typing practice" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "English sentences" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "English one-line drills" })).toBeVisible();
   await expect(page.getByRole("button", { name: "English words" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Korean words" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Korean keyboard positions" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Choose a passage" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Short passages" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Long passages" })).toBeVisible();
   await expect(page.getByRole("button", { name: "30-second word challenge" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Free typing" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Recent practice" })).toBeVisible();
@@ -50,21 +51,21 @@ test("interface and practice languages are independent and filter home content",
 test("speed units have language-specific defaults and save independently", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "환경설정" }).click();
-  const koreanUnit = page.getByRole("combobox", { name: "한국어 속도 단위" });
-  const englishUnit = page.getByRole("combobox", { name: "영어 속도 단위" });
-  await expect(koreanUnit).toHaveValue("cpm");
-  await expect(englishUnit).toHaveValue("wpm");
+  const koreanUnit = page.getByRole("button", { name: /한국어 속도 단위/ });
+  const englishUnit = page.getByRole("button", { name: /영어 속도 단위/ });
+  await expect(koreanUnit).toContainText("분당 타수 (CPM)");
+  await expect(englishUnit).toContainText("분당 단어 수 (WPM)");
 
-  await koreanUnit.selectOption("wpm");
-  await englishUnit.selectOption("cpm");
+  await koreanUnit.click();
+  await englishUnit.click();
   await expect.poll(() => page.evaluate((key) => {
     const saved = JSON.parse(localStorage.getItem(key) ?? "null");
     return [saved?.version, saved?.preferences?.typingSpeedUnits?.ko, saved?.preferences?.typingSpeedUnits?.en];
   }, appPreferencesKey)).toEqual([2, "wpm", "cpm"]);
 
   await page.getByRole("button", { name: "환경설정을 기본값으로 되돌리기" }).click();
-  await expect(koreanUnit).toHaveValue("cpm");
-  await expect(englishUnit).toHaveValue("wpm");
+  await expect(koreanUnit).toContainText("분당 타수 (CPM)");
+  await expect(englishUnit).toContainText("분당 단어 수 (WPM)");
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), appPreferencesKey)).toBeNull();
 });
 
@@ -77,11 +78,9 @@ test("A12 preferences migrate and English WPM stays consistent in results and hi
   }, appPreferencesKey);
   await page.goto("/");
   await page.getByRole("button", { name: "Settings" }).click();
-  const koreanUnit = page.getByRole("combobox", { name: "Korean speed unit" });
-  const englishUnit = page.getByRole("combobox", { name: "English speed unit" });
-  await expect(koreanUnit).toHaveValue("cpm");
-  await expect(englishUnit).toHaveValue("wpm");
-  await koreanUnit.selectOption("wpm");
+  const koreanUnit = page.getByRole("button", { name: /Korean speed unit/ });
+  await expect(koreanUnit).toContainText("Keystrokes/minute (CPM)");
+  await koreanUnit.click();
   await expect.poll(() => page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? "null"), appPreferencesKey))
     .toMatchObject({ version: 2, preferences: { interfaceLanguage: "en", practiceLanguage: "en", completionSound: false, typingSpeedUnits: { ko: "wpm", en: "wpm" } } });
   await page.getByRole("button", { name: "← Menu" }).click();
@@ -153,7 +152,7 @@ test("completion sound plays only after submitting a practice item", async ({ pa
     Object.defineProperty(window, "AudioContext", { configurable: true, value: AudioContextMock });
   }, appPreferencesKey);
   await page.goto("/");
-  await page.getByRole("button", { name: "한글 단문" }).click();
+  await page.getByRole("button", { name: "한글 한 줄" }).click();
   const input = page.getByRole("textbox", { name: "따라 입력하기" });
   const prompt = await page.locator("#typing-target").getAttribute("aria-label");
   expect(prompt).not.toBeNull();

@@ -7,7 +7,7 @@ it("deduplicates sessions and keeps the newest 100", () => {
     id: `session-${index}`,
     materialId: "first-steps",
     completedAt: index,
-    mode: "sentence",
+    mode: "line",
     language: "ko",
     score: {
       accuracy: 100,

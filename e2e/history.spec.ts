@@ -14,7 +14,7 @@ async function finishWord(page: Page, mode: string, word: string) {
 test("simultaneous completions persist across tabs and can be compared and cleared", async ({ page, context }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "환경설정" }).click();
-  await page.getByRole("combobox", { name: "연습 언어" }).selectOption("en");
+  await page.getByRole("button", { name: /연습 언어/ }).click();
   await page.getByRole("button", { name: "← 메뉴" }).click();
   const other = await context.newPage();
   await Promise.all([
@@ -30,7 +30,7 @@ test("simultaneous completions persist across tabs and can be compared and clear
   await page.getByRole("button", { name: "메뉴로 돌아가기" }).click();
   await page.getByRole("button", { name: "최근 연습 기록" }).click();
   await expect(page.getByRole("listitem")).toHaveCount(3);
-  await page.getByRole("combobox").selectOption("article");
+  await page.getByRole("combobox").selectOption("long");
   await expect(page.getByText("표시할 연습 기록이 없습니다.")).toBeVisible();
   await page.getByRole("button", { name: "기록 지우기", exact: true }).click();
   await page.getByRole("button", { name: "전체 기록 지우기" }).click();
