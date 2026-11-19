@@ -1,7 +1,7 @@
 import type { Language } from "../content/lessons";
 import type { TypingScore } from "./typing";
 
-export type RecordedMode = "position" | "word" | "sentence" | "article";
+export type RecordedMode = "position" | "word" | "line" | "short" | "long";
 
 export type PracticeRecord = {
   id: string;
@@ -16,8 +16,9 @@ export const recordLimit = 100;
 export const modeLabels: Record<RecordedMode, string> = {
   position: "자리 연습",
   word: "낱말",
-  sentence: "단문",
-  article: "장문",
+  line: "한 줄",
+  short: "짧은 글",
+  long: "긴 글",
 };
 
 export function recentRecords(records: readonly PracticeRecord[]): PracticeRecord[] {

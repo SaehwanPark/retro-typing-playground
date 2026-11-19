@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useState } from "react";
-import { challengeWords } from "../content/challengeWords";
+import { challengeWords } from "../content/library";
 import { advanceChallenge, challengeDurationMs, targetWord } from "../domain/challenge";
 import type { ChallengeAction, ChallengeState } from "../domain/challenge";
 import { TypingInput } from "./TypingInput";

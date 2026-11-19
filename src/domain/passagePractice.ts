@@ -1,7 +1,8 @@
+import type { Language } from "../content/lessons";
 import { calculateTypingScore, createPracticeSession, createTypingScore, hasReachedEnd, reducePracticeSession } from "./typing";
 import type { PracticeSession, TypingScore } from "./typing";
 
-export type ArticleSession = {
+export type PassageSession = {
   lineIndex: number;
   line: PracticeSession;
   startedAt: number | null;
@@ -10,12 +11,12 @@ export type ArticleSession = {
   keystrokeCount: number;
 };
 
-type ArticleAdvance =
+type PassageAdvance =
   | { type: "waiting" }
-  | { type: "next-line"; session: ArticleSession }
+  | { type: "next-line"; session: PassageSession }
   | { type: "completed"; score: TypingScore };
 
-export function createArticleSession(): ArticleSession {
+export function createPassageSession(): PassageSession {
   return {
     lineIndex: 0,
     line: createPracticeSession(),
@@ -26,27 +27,37 @@ export function createArticleSession(): ArticleSession {
   };
 }
 
-export function updateArticleInput(session: ArticleSession, input: string, at: number): ArticleSession {
+export function updatePassageInput(session: PassageSession, input: string, at: number): PassageSession {
   const line = reducePracticeSession(session.line, { type: "input-changed", input, at });
   return { ...session, line, startedAt: session.startedAt ?? line.startedAt };
 }
 
-export function scoreArticle(target: string, session: ArticleSession, at: number): TypingScore {
-  const line = calculateTypingScore(target, session.line, at, "ko");
+export function scorePassage(
+  target: string,
+  session: PassageSession,
+  at: number,
+  language: Language,
+): TypingScore {
+  const line = calculateTypingScore(target, session.line, at, language);
   return createTypingScore(
     session.correctCount + line.correctCount,
     session.typedCount + line.typedCount,
     session.startedAt === null ? null : Math.max(0, at - session.startedAt),
-    "ko",
+    language,
     session.keystrokeCount + (line.keystrokeCount ?? 0),
   );
 }
 
-export function submitArticleLine(lines: readonly string[], session: ArticleSession, at: number): ArticleAdvance {
+export function submitPassageLine(
+  lines: readonly string[],
+  session: PassageSession,
+  at: number,
+  language: Language,
+): PassageAdvance {
   const target = lines[session.lineIndex];
   if (!target || !hasReachedEnd(target, session.line.input)) return { type: "waiting" };
 
-  const score = scoreArticle(target, session, at);
+  const score = scorePassage(target, session, at, language);
   const nextIndex = session.lineIndex + 1;
   if (nextIndex === lines.length) return { type: "completed", score };
 

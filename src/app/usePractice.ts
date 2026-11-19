@@ -1,9 +1,13 @@
 import { useCallback, useReducer } from "react";
 import type { Activity, PositionActivity, TextActivity, TextLesson } from "../content/lessons";
-import { libraryEntry } from "../content/articles";
-import type { ArticleActivity } from "../content/articles";
-import { createArticleSession, submitArticleLine, updateArticleInput } from "../domain/articlePractice";
-import type { ArticleSession } from "../domain/articlePractice";
+import { longPassageEntry, shortPassageEntry } from "../content/passages";
+import type { PassageActivity, PassageLength } from "../content/passages";
+import {
+  createPassageSession,
+  submitPassageLine,
+  updatePassageInput,
+} from "../domain/passagePractice";
+import type { PassageSession } from "../domain/passagePractice";
 import { createPositionSession, pressPosition, scorePositions } from "../domain/positions";
 import type { PositionKey, PositionSession } from "../domain/positions";
 import { calculateTypingScore, createPracticeSession, hasReachedEnd, reducePracticeSession } from "../domain/typing";
@@ -14,10 +18,11 @@ export const historyEntry = { id: "history", label: "최근 연습 기록", kind
 export const challengeEntry = { id: "challenge", label: "30초 낱말 도전", kind: "challenge" } as const;
 export const freePracticeEntry = { id: "free-practice", label: "연습장", kind: "free-practice" } as const;
 export const settingsEntry = { id: "settings", label: "환경설정", kind: "settings" } as const;
+export const passageEntries = [shortPassageEntry, longPassageEntry] as const;
 
 export type PracticeContentState =
   | { screen: "menu"; selected: string | null }
-  | { screen: "library"; selected: string | null }
+  | { screen: "library"; length: PassageLength; selected: string | null }
   | { screen: "history" }
   | { screen: "challenge" }
   | { screen: "free-practice" }
@@ -31,8 +36,8 @@ export type PracticeContentState =
     previous: TypingScore | null;
   }
   | { screen: "positions"; activity: PositionActivity; session: PositionSession }
-  | { screen: "article"; activity: ArticleActivity; session: ArticleSession }
-  | { screen: "result"; activity: Activity | ArticleActivity; score: TypingScore };
+  | { screen: "passage"; activity: PassageActivity; session: PassageSession }
+  | { screen: "result"; activity: Activity | PassageActivity; score: TypingScore };
 
 export type PracticeState =
   | PracticeContentState
@@ -40,8 +45,8 @@ export type PracticeState =
 
 type CompletionTime = { id: string; completedAt: number; at: number };
 export type AppAction =
-  | { type: "start"; activity: Activity | ArticleActivity }
-  | { type: "open-library" }
+  | { type: "start"; activity: Activity | PassageActivity }
+  | { type: "open-library"; length: PassageLength }
   | { type: "open-history" }
   | { type: "open-settings" }
   | { type: "close-settings" }
@@ -54,9 +59,9 @@ export type AppAction =
   | { type: "return-to-menu" }
   | { type: "retry" };
 
-function startActivity(activity: Activity | ArticleActivity): PracticeState {
-  if (activity.kind === "article") {
-    return { screen: "article", activity, session: createArticleSession() };
+function startActivity(activity: Activity | PassageActivity): PracticeState {
+  if (activity.kind === "passage") {
+    return { screen: "passage", activity, session: createPassageSession() };
   }
   if (activity.kind === "position") {
     return { screen: "positions", activity, session: createPositionSession() };
@@ -104,15 +109,15 @@ function reduceTextPractice(
   };
 }
 
-function reduceArticlePractice(state: Extract<PracticeState, { screen: "article" }>, action: AppAction): PracticeState {
+function reducePassagePractice(state: Extract<PracticeState, { screen: "passage" }>, action: AppAction): PracticeState {
   if (action.type === "input-changed") {
-    return { ...state, session: updateArticleInput(state.session, action.input, action.at) };
+    return { ...state, session: updatePassageInput(state.session, action.input, action.at) };
   }
   if (action.type !== "submit") return state;
   const session = action.input === undefined
     ? state.session
-    : updateArticleInput(state.session, action.input, action.at);
-  const update = submitArticleLine(state.activity.lines, session, action.at);
+    : updatePassageInput(state.session, action.input, action.at);
+  const update = submitPassageLine(state.activity.lines, session, action.at, state.activity.language);
   switch (update.type) {
     case "waiting": return state;
     case "next-line": return { ...state, session: update.session };
@@ -126,14 +131,16 @@ export function reducePracticeState(state: PracticeState, action: AppAction): Pr
     const returnState = state.screen === "menu" ? { ...state, selected: settingsEntry.id } : state;
     return { screen: "settings", returnState };
   }
-  if (action.type === "open-library") return { screen: "library", selected: null };
+  if (action.type === "open-library") return { screen: "library", length: action.length, selected: null };
   if (action.type === "open-history") return { screen: "history" };
   if (action.type === "open-challenge") return { screen: "challenge" };
   if (action.type === "open-free-practice") return { screen: "free-practice" };
   if (action.type === "start") return startActivity(action.activity);
   if (state.screen === "menu") return state;
   if (state.screen === "library") {
-    return action.type === "return-to-menu" ? { screen: "menu", selected: libraryEntry.id } : state;
+    return action.type === "return-to-menu"
+      ? { screen: "menu", selected: state.length === "short" ? shortPassageEntry.id : longPassageEntry.id }
+      : state;
   }
   if (state.screen === "history") {
     return action.type === "return-to-menu" ? { screen: "menu", selected: historyEntry.id } : state;
@@ -148,12 +155,17 @@ export function reducePracticeState(state: PracticeState, action: AppAction): Pr
     return action.type === "return-to-menu" ? { screen: "menu", selected: freePracticeEntry.id } : state;
   }
   if (action.type === "return-to-menu") {
-    const screen = state.activity.kind === "article" ? "library" : "menu";
-    return { screen, selected: state.activity.id };
+    if (state.screen === "passage") {
+      return { screen: "library", length: state.activity.length, selected: state.activity.id };
+    }
+    if (state.screen === "result" && state.activity.kind === "passage") {
+      return { screen: "library", length: state.activity.length, selected: state.activity.id };
+    }
+    return { screen: "menu", selected: state.activity.id };
   }
   if (state.screen === "result" && action.type === "retry") return startActivity(state.activity);
   if (state.screen === "practice") return reduceTextPractice(state, action);
-  if (state.screen === "article") return reduceArticlePractice(state, action);
+  if (state.screen === "passage") return reducePassagePractice(state, action);
 
   if (state.screen === "positions" && action.type === "position-key") {
     const target = state.activity.keys[state.session.correct];
@@ -182,12 +194,16 @@ function completedRecord(before: PracticeState, after: PracticeState, action: Ap
     : (before.screen === "practice" && after.screen === "practice" && after.round > before.round)
       ? after.previous : null;
   if (!score) return null;
+  const mode = before.screen === "passage" ? before.activity.length
+    : before.screen === "practice" ? before.activity.kind
+      : before.activity.kind;
   return {
     id: action.id,
     materialId: before.screen === "practice" ? before.lesson.id : before.activity.id,
     completedAt: action.completedAt,
-    mode: before.activity.kind,
-    language: before.screen === "practice" ? before.lesson.language : "ko",
+    mode,
+    language: before.screen === "practice" ? before.lesson.language
+      : before.screen === "passage" ? before.activity.language : "ko",
     score,
   };
 }

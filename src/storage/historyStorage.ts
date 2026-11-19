@@ -3,8 +3,12 @@ import type { PracticeRecord } from "../domain/history";
 import type { TypingScore } from "../domain/typing";
 
 export const historyKey = "retro-typing-playground:history";
-const historyVersion = 2;
-const previousHistoryVersion = 1;
+const historyVersion = 3;
+const previousHistoryVersions = new Set([1, 2]);
+const legacyModeNames: Record<string, PracticeRecord["mode"]> = {
+  sentence: "line",
+  article: "long",
+};
 
 export type HistoryRead =
   | { ok: true; records: PracticeRecord[] }
@@ -28,9 +32,15 @@ function isOptionalCount(value: unknown): value is number | null {
 
 type LegacyTypingScore = Pick<TypingScore, "accuracy" | "correctCount" | "typedCount" | "elapsedMs" | "charactersPerMinute">;
 
-type RecordEnvelope = Pick<PracticeRecord, "id" | "materialId" | "completedAt" | "mode" | "language"> & {
+type RecordEnvelope = Pick<PracticeRecord, "id" | "materialId" | "completedAt" | "language"> & {
+  mode: string;
   score: unknown;
 };
+
+function normalizeRecordedMode(mode: string): PracticeRecord["mode"] | null {
+  if (Object.hasOwn(modeLabels, mode)) return mode as PracticeRecord["mode"];
+  return legacyModeNames[mode] ?? null;
+}
 
 function hasValidScoreCounts(score: Record<string, unknown>): boolean {
   const { typedCount, correctCount, accuracy, elapsedMs } = score;
@@ -58,20 +68,23 @@ function isRecordEnvelope(value: unknown): value is RecordEnvelope {
   return typeof value.id === "string" && value.id.length > 0
     && typeof value.materialId === "string" && value.materialId.length > 0
     && isNumber(value.completedAt) && value.completedAt <= 8.64e15
-    && typeof value.mode === "string" && Object.hasOwn(modeLabels, value.mode)
+    && typeof value.mode === "string" && normalizeRecordedMode(value.mode) !== null
     && (value.language === "ko" || value.language === "en");
 }
 
 function decodeRecord(value: unknown, isLegacy: boolean): PracticeRecord | null {
   if (!isRecordEnvelope(value)) return null;
+  const mode = normalizeRecordedMode(value.mode);
+  if (!mode) return null;
   if (!isLegacy) {
-    return isCurrentScore(value.score) ? { ...value, score: value.score } : null;
+    return isCurrentScore(value.score) ? { ...value, mode, score: value.score } : null;
   }
   if (!isLegacyScore(value.score)) return null;
 
-  const hideLegacyKoreanSpeed = value.language === "ko" && value.mode !== "position";
+  const hideLegacyKoreanSpeed = value.language === "ko" && mode !== "position";
   return {
     ...value,
+    mode,
     score: {
       ...value.score,
       charactersPerMinute: hideLegacyKoreanSpeed ? null : value.score.charactersPerMinute,
@@ -85,9 +98,10 @@ export function decodeHistory(raw: string | null): HistoryRead {
   if (raw === null) return { ok: true, records: [] };
   try {
     const data: unknown = JSON.parse(raw);
-    const isLegacy = isObject(data) && data.version === previousHistoryVersion;
+    const isLegacy = isObject(data) && data.version === 1;
     if (
-      !isObject(data) || (data.version !== historyVersion && !isLegacy) ||
+      !isObject(data) ||
+      (data.version !== historyVersion && !(typeof data.version === "number" && previousHistoryVersions.has(data.version))) ||
       !Array.isArray(data.records)
     ) return { ok: false, records: [] };
 
