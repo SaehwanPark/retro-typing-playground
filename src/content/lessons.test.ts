@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { activities, firstKoreanLesson } from "./library";
 import { textActivities } from "./lessons";
-import { passagesFor } from "./passages";
+import { passageActivities, passagesFor } from "./passages";
 
 it("skips unusable prompts without losing valid modes", () => {
   const lessons = textActivities([
@@ -39,4 +39,25 @@ it("bundles line, short passage, and long passage assets for both languages", ()
   }
   expect(passagesFor("ko", "short").every((passage) => passage.characterCount >= 200)).toBe(true);
   expect(passagesFor("ko", "long").every((passage) => passage.characterCount >= 2_000)).toBe(true);
+});
+
+it("credits every copied passage and keeps extraction artifacts out of the text", () => {
+  const copied = passageActivities.filter((passage) => passage.license !== "original");
+  expect(copied.map((passage) => passage.id).sort()).toEqual([
+    "constitution-preamble",
+    "gift-of-the-magi",
+    "hancom-typing-web",
+    "hangul-english",
+    "hangul-story",
+    "typewriter-history",
+    "unsworn-morning",
+    "wings-room",
+  ]);
+  for (const passage of copied) {
+    expect(passage.credit).not.toBeNull();
+    expect(passage.credit?.url).toMatch(/^https:\/\//);
+    expect(passage.text).not.toMatch(/섬네일|&#\d+;|\[https?:\/\//);
+  }
+  expect(passageActivities.filter((passage) => passage.license === "original")
+    .every((passage) => passage.credit === null)).toBe(true);
 });

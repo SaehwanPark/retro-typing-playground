@@ -41,3 +41,13 @@ test("long passages expose five-line pages and their genre and size", async ({ p
   await expect(page.locator(".passage-page li.done")).toHaveCount(1);
   await expect(page.locator(".passage-page li.current")).toHaveText(new RegExp(passage.lines[1]!));
 });
+
+test("copied passages show their author, source, and license in the list", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "짧은 글" }).click();
+  const entry = page.getByRole("button", { name: /운수 좋은 날/ });
+  await expect(entry).toContainText("현진건 · 한국어 위키문헌 · CC BY-SA 4.0");
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "긴 글" }).click();
+  await expect(page.getByRole("button", { name: /날개/ })).toContainText("이상 · 한국어 위키문헌");
+});

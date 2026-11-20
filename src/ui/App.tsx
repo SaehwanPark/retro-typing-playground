@@ -236,6 +236,9 @@ export function App() {
     ...passage,
     label: copy.activityLabel(passage.id, passage.label),
     detail: `${copy.genreLabel(passage.genre)} · ${passage.characterCount}${copy.charactersSuffix}`,
+    creditLabel: passage.credit
+      ? `${passage.credit.author} · ${passage.credit.source} · ${copy.licenseLabel(passage.license)}`
+      : "",
   }));
 
   const historyMessage = history.notice === "history-save-failed" ? copy.historySaveFailed :
