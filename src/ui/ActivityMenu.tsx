@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { KeyboardEvent } from "react";
 import type { InterfaceText } from "../content/interfaceText";
-type MenuEntry = { id: string; label: string; detail?: string };
+type MenuEntry = { id: string; label: string; detail?: string; creditLabel?: string };
 
 type ActivityMenuProps<Entry extends MenuEntry> = {
   activities: readonly Entry[];
@@ -49,7 +49,11 @@ export function ActivityMenu<Entry extends MenuEntry>({
             type="button"
             onClick={() => onStart(activity)}
           >
-            <span><strong>{activity.label}</strong>{activity.detail && <small>{activity.detail}</small>}</span>
+            <span>
+              <strong>{activity.label}</strong>
+              {activity.detail && <small>{activity.detail}</small>}
+              {activity.creditLabel && <small className="credit">{activity.creditLabel}</small>}
+            </span>
             <span aria-hidden="true">↵</span>
           </button>
         ))}

@@ -6,6 +6,13 @@ import rawEnglish from "./assets/passages.en.json" with { type: "json" };
 
 export type PassageLength = "short" | "long";
 export type PassageGenre = "literature" | "nonfiction" | "technology" | "life" | "subculture";
+export type PassageLicense = "original" | "public-domain" | "cc-by-sa-4.0";
+
+export type PassageCredit = {
+  author: string;
+  source: string;
+  url: string;
+};
 
 export type PassageActivity = {
   id: string;
@@ -14,7 +21,8 @@ export type PassageActivity = {
   language: Language;
   length: PassageLength;
   genre: PassageGenre;
-  source: "original" | "public-domain";
+  license: PassageLicense;
+  credit: PassageCredit | null;
   text: string;
   characterCount: number;
   lines: NonEmpty<string>;
@@ -26,7 +34,8 @@ type RawPassage = {
   language: unknown;
   length: unknown;
   genre: unknown;
-  source: unknown;
+  license: unknown;
+  credit: unknown;
   paragraphs: unknown;
 };
 
@@ -47,8 +56,22 @@ function isGenre(value: unknown): value is PassageGenre {
     value === "technology" || value === "life" || value === "subculture";
 }
 
-function isSource(value: unknown): value is PassageActivity["source"] {
-  return value === "original" || value === "public-domain";
+function isLicense(value: unknown): value is PassageLicense {
+  return value === "original" || value === "public-domain" || value === "cc-by-sa-4.0";
+}
+
+/**
+ * Copied texts must carry a visible credit so CC BY-SA and 공공누리 attribution
+ * stays with the passage wherever it is rendered. Original texts need none.
+ */
+function readCredit(value: unknown, license: PassageLicense): PassageCredit | null | undefined {
+  if (value === undefined || value === null) return license === "original" ? null : undefined;
+  if (!isObject(value)) return undefined;
+  const { author, source, url } = value;
+  if (typeof author !== "string" || !author.trim()) return undefined;
+  if (typeof source !== "string" || !source.trim()) return undefined;
+  if (typeof url !== "string" || !/^https:\/\//.test(url)) return undefined;
+  return { author: author.trim(), source: source.trim(), url };
 }
 
 function readPassage(value: unknown): PassageActivity | null {
@@ -56,8 +79,11 @@ function readPassage(value: unknown): PassageActivity | null {
   const raw = value as RawPassage;
   if (typeof raw.id !== "string" || !raw.id.trim()) return null;
   if (typeof raw.title !== "string" || !raw.title.trim()) return null;
-  if (!isLanguage(raw.language) || !isLength(raw.length) || !isGenre(raw.genre) || !isSource(raw.source)) return null;
+  if (!isLanguage(raw.language) || !isLength(raw.length) || !isGenre(raw.genre) || !isLicense(raw.license)) return null;
   if (!Array.isArray(raw.paragraphs)) return null;
+
+  const credit = readCredit(raw.credit, raw.license);
+  if (credit === undefined) return null;
 
   const text = raw.paragraphs
     .filter((paragraph): paragraph is string => typeof paragraph === "string")
@@ -75,7 +101,8 @@ function readPassage(value: unknown): PassageActivity | null {
     language: raw.language,
     length: raw.length,
     genre: raw.genre,
-    source: raw.source,
+    license: raw.license,
+    credit,
     text,
     characterCount: splitCharacters(text).length,
     lines: [first, ...rest],

@@ -113,6 +113,7 @@ export type InterfaceText = Readonly<{
   passageCompletedLine: string;
   passageNextLine: string;
   genreLabel: (genre: string) => string;
+  licenseLabel: (license: string) => string;
   screenCaptureError: string;
   screenCaptureSuccess: string;
   screenCaptureUnsupported: string;
@@ -238,6 +239,10 @@ const ko: InterfaceText = {
     life: "생활",
     subculture: "서브컬쳐",
   }[genre] ?? genre),
+  licenseLabel: (license) => ({
+    "public-domain": "퍼블릭 도메인",
+    "cc-by-sa-4.0": "CC BY-SA 4.0",
+  }[license] ?? ""),
   screenCaptureError: "화면을 저장하지 못했습니다. 다시 시도하세요.",
   screenCaptureSuccess: "화면을 PNG로 저장했습니다.",
   screenCaptureUnsupported: "이 브라우저에서는 화면 저장을 지원하지 않습니다.",
@@ -375,6 +380,10 @@ const en: InterfaceText = {
     life: "Life",
     subculture: "Subculture",
   }[genre] ?? genre),
+  licenseLabel: (license) => ({
+    "public-domain": "Public domain",
+    "cc-by-sa-4.0": "CC BY-SA 4.0",
+  }[license] ?? ""),
   screenCaptureError: "Could not save the screen. Try again.",
   screenCaptureSuccess: "Saved the screen as a PNG.",
   screenCaptureUnsupported: "Screen capture is not supported in this browser.",
