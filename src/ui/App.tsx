@@ -19,7 +19,8 @@ import type { Activity, Language } from "../content/lessons";
 import { longPassageEntry, passagesFor, shortPassageEntry } from "../content/passages";
 import type { PassageActivity } from "../content/passages";
 import { interfaceText } from "../content/interfaceText";
-import { hasReachedEnd } from "../domain/typing";
+import { submissionEndsBundle } from "../domain/passagePractice";
+import { calculateLiveAccuracy, hasReachedEnd } from "../domain/typing";
 import type { PositionKey } from "../domain/positions";
 import { comparableRecord } from "../domain/history";
 import { defaultColorTheme, defaultSize } from "../storage/settingsStorage";
@@ -37,10 +38,7 @@ import { playCompletionTone } from "./completionSound";
 
 function shouldPlayForCurrentSubmission(state: ReturnType<typeof usePracticeState>["state"], input?: string): boolean {
   if (state.screen === "practice") return hasReachedEnd(state.lesson.text, input ?? state.session.input);
-  if (state.screen === "passage") {
-    const target = state.activity.lines[state.session.lineIndex];
-    return target !== undefined && hasReachedEnd(target, input ?? state.session.line.input);
-  }
+  if (state.screen === "passage") return submissionEndsBundle(state.activity.lines, state.session, input);
   return false;
 }
 
@@ -320,6 +318,11 @@ export function App() {
           prompt={currentScreen.lesson.text}
           language={currentScreen.lesson.language}
           session={currentScreen.session}
+          liveScore={() => calculateLiveAccuracy(
+            currentScreen.lesson.text,
+            currentScreen.session.input,
+            currentScreen.lesson.language,
+          )}
           previous={currentScreen.previous}
           speedUnit={typingSpeedUnits[currentScreen.lesson.language]}
           copy={copy}

@@ -85,6 +85,27 @@ test("Korean sentence Space submits only after the prompt is complete", async ({
   await expect(input).toHaveValue("");
 });
 
+test("live score shows accuracy only and speed appears once the line is submitted", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "한 줄", exact: true }).click();
+  const input = page.getByRole("textbox", { name: "따라 입력하기" });
+  const prompt = await page.locator("#typing-target").getAttribute("aria-label");
+  expect(prompt).not.toBeNull();
+
+  const currentScore = page.locator(".scores").first();
+  await input.fill(prompt!.slice(0, 2));
+  await expect(currentScore.locator("dt")).toHaveCount(1);
+  await expect(currentScore.locator("dt")).toHaveText("정확도");
+
+  await input.fill(prompt!);
+  await expect(currentScore.locator("dt")).toHaveCount(1);
+  await input.press("Enter");
+
+  const previousScore = page.locator(".previous-score .scores");
+  await expect(previousScore.locator("dt")).toHaveCount(2);
+  await expect(previousScore.locator("dt").nth(1)).toHaveText("타수/분");
+});
+
 test("Korean CPM displays two-set keystrokes per minute", async ({ page }) => {
   await page.clock.install();
   await page.goto("/");

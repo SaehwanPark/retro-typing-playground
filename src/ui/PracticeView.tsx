@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
 import type { Language } from "../content/lessons";
 import type { InterfaceText } from "../content/interfaceText";
-import { calculateTypingScore, splitCharacters } from "../domain/typing";
+import { splitCharacters } from "../domain/typing";
 import type { PracticeSession, TypingScore } from "../domain/typing";
 import type { TypingSpeedUnit } from "../domain/typingSpeed";
 import { TypingInput } from "./TypingInput";
@@ -13,11 +13,16 @@ type PracticeViewProps = {
   language: Language;
   prompt: string;
   session: PracticeSession;
+  /**
+   * Speed for the current item is held back until the item is submitted. The
+   * live score therefore only carries accuracy; the speed appears once a line,
+   * word, or bundle is complete.
+   */
+  liveScore: () => TypingScore;
   previous?: TypingScore | null;
+  previousLabel?: string;
   context?: ReactNode;
-  startedAt?: number | null;
   speedUnit: TypingSpeedUnit;
-  scoreAt?: (now: number) => TypingScore;
   backLabel?: string;
   copy: InterfaceText;
   onInput: (input: string, at: number) => void;
@@ -27,20 +32,13 @@ type PracticeViewProps = {
 };
 
 export function PracticeView({
-  title, language, prompt, session, previous, context, startedAt = session.startedAt, speedUnit,
-  scoreAt, backLabel, onInput, onSubmit, onFinish, onBack, copy,
+  title, language, prompt, session, liveScore, previous, previousLabel, context, speedUnit,
+  backLabel, onInput, onSubmit, onFinish, onBack, copy,
 }: PracticeViewProps) {
-  const [now, setNow] = useState(() => performance.now());
   const [notice, setNotice] = useState("");
   const target = splitCharacters(prompt);
   const typed = splitCharacters(session.input);
-  const score = scoreAt ? scoreAt(now) : calculateTypingScore(prompt, session, now, language);
-
-  useEffect(() => {
-    if (startedAt === null) return;
-    const timer = window.setInterval(() => setNow(performance.now()), 250);
-    return () => window.clearInterval(timer);
-  }, [startedAt]);
+  const score = liveScore();
 
   function submit(input?: string, at = performance.now()) {
     const inputToSubmit = input ?? session.input;
@@ -76,7 +74,6 @@ export function PracticeView({
           language={language}
           target={prompt}
           onInput={(input, at) => {
-            setNow(at);
             setNotice("");
             onInput(input, at);
           }}
@@ -95,12 +92,12 @@ export function PracticeView({
         <button type="button" className="button" onClick={() => submit()}>{copy.submit}</button>
       </div>
       <p className="notice" role="status">{notice}</p>
-      <Scoreboard label={copy.currentScore} score={score} language={language} speedUnit={speedUnit} copy={copy} />
+      <Scoreboard label={copy.currentScore} score={score} language={language} speedUnit={speedUnit} copy={copy} showSpeed={false} />
       {previous && (
         <section className="previous-score" aria-labelledby="previous-title">
-          <h2 id="previous-title">{copy.previousSentence}</h2>
+          <h2 id="previous-title">{previousLabel ?? copy.previousSentence}</h2>
           <Scoreboard label={copy.previousScore} score={previous} language={language} speedUnit={speedUnit} copy={copy} />
-          <button type="button" className="button secondary" onClick={onFinish}>{copy.finishPractice}</button>
+          {onFinish && <button type="button" className="button secondary" onClick={onFinish}>{copy.finishPractice}</button>}
         </section>
       )}
     </section>
