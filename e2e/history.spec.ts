@@ -4,7 +4,7 @@ import { historyKey } from "../src/storage/historyStorage";
 
 async function finishWord(page: Page, mode: string, word: string) {
   await page.goto("/");
-  await page.getByRole("button", { name: mode }).click();
+  await page.getByRole("button", { name: mode, exact: true }).click();
   const input = page.getByRole("textbox", { name: "따라 입력하기" });
   await input.fill(word);
   await input.press("Enter");
@@ -18,14 +18,14 @@ test("simultaneous completions persist across tabs and can be compared and clear
   await page.getByRole("button", { name: "← 메뉴" }).click();
   const other = await context.newPage();
   await Promise.all([
-    finishWord(page, "영문 낱말", "orchard"),
-    finishWord(other, "영문 낱말", "orchard"),
+    finishWord(page, "낱말", "orchard"),
+    finishWord(other, "낱말", "orchard"),
   ]);
   await expect.poll(async () => await page.evaluate((key) => {
     const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw).records.length : 0;
   }, historyKey)).toBe(2);
-  await finishWord(page, "영문 낱말", "orchard");
+  await finishWord(page, "낱말", "orchard");
   await expect(page.getByRole("heading", { name: "같은 모드의 이전 기록" })).toBeVisible();
   await page.getByRole("button", { name: "메뉴로 돌아가기" }).click();
   await page.getByRole("button", { name: "최근 연습 기록" }).click();
@@ -43,7 +43,7 @@ test("simultaneous completions persist across tabs and can be compared and clear
 test("unreadable data is preserved and a session still completes", async ({ page }) => {
   await page.goto("/");
   await page.evaluate((key) => localStorage.setItem(key, "unreadable"), historyKey);
-  await finishWord(page, "한글 낱말", "연필");
+  await finishWord(page, "낱말", "연필");
   await expect(page.getByRole("status")).toContainText("이번 기록은 저장하지 못했습니다");
   await expect(page.getByText("100%")).toBeVisible();
   expect(await page.evaluate((key) => localStorage.getItem(key), historyKey)).toBe("unreadable");
@@ -53,7 +53,7 @@ test("a failed write leaves the score available in the current page", async ({ p
   await page.addInitScript(() => {
     Storage.prototype.setItem = () => { throw new DOMException("Storage is full", "QuotaExceededError"); };
   });
-  await finishWord(page, "한글 낱말", "연필");
+  await finishWord(page, "낱말", "연필");
   await expect(page.getByRole("status")).toContainText("이번 기록은 저장하지 못했습니다");
   await page.getByRole("button", { name: "메뉴로 돌아가기" }).click();
   await page.getByRole("button", { name: "최근 연습 기록" }).click();

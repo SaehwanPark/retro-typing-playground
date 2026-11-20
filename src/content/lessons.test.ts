@@ -29,7 +29,7 @@ it("trims only line-ending punctuation from Korean line prompts", () => {
 
 it("bundles line, short passage, and long passage assets for both languages", () => {
   expect(activities.map((activity) => activity.id)).toEqual(
-    ["ko-line", "ko-word", "en-line", "en-word", "ko-positions"],
+    ["ko-positions", "ko-word", "ko-line", "en-word", "en-line"],
   );
   const koreanLine = activities.find((activity) => activity.id === "ko-line");
   expect(koreanLine?.kind === "line" ? koreanLine.lessons.length : 0).toBeGreaterThan(5);

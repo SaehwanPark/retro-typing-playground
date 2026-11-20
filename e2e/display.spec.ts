@@ -13,7 +13,7 @@ async function closeSettings(page: Page) {
 
 test("text size changes from settings, survives reload, and can be reset", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "한글 한 줄" }).click();
+  await page.getByRole("button", { name: "한 줄", exact: true }).click();
   const input = page.getByRole("textbox", { name: "따라 입력하기" });
   await input.fill("한글");
   await page.getByRole("button", { name: "환경설정" }).click();
@@ -27,13 +27,13 @@ test("text size changes from settings, survives reload, and can be reset", async
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), settingsKey)).toContain("largest");
 
   await page.reload();
-  await page.getByRole("button", { name: "한글 한 줄" }).click();
+  await page.getByRole("button", { name: "한 줄", exact: true }).click();
   await expect(input).toHaveCSS("font-size", "32px");
   await page.getByRole("button", { name: "← 메뉴" }).click();
   await openSettings(page);
   await page.getByRole("button", { name: "기본 크기로 되돌리기" }).click();
   await closeSettings(page);
-  await page.getByRole("button", { name: "한글 한 줄" }).click();
+  await page.getByRole("button", { name: "한 줄", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "따라 입력하기" })).toHaveCSS("font-size", "21.6px");
   await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), settingsKey)).toBeNull();
 });
@@ -66,7 +66,7 @@ test("practice fonts are kept separately for Korean and English", async ({ page 
   await expect(page.locator("html")).toHaveAttribute("data-practice-font", "gothic");
   await page.getByRole("button", { name: /연습 글꼴 · 영어/ }).click();
   await closeSettings(page);
-  await page.getByRole("button", { name: "영문 한 줄" }).click();
+  await page.getByRole("button", { name: "한 줄", exact: true }).click();
   await expect(page.locator("#typing-target")).toHaveCSS("font-family", 'Georgia, "Times New Roman", serif');
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-practice-language", "en");
