@@ -56,7 +56,7 @@ function isGenre(value: unknown): value is PassageGenre {
     value === "technology" || value === "life" || value === "subculture";
 }
 
-function isSource(value: unknown): value is PassageLicense {
+function isLicense(value: unknown): value is PassageLicense {
   return value === "original" || value === "public-domain" || value === "cc-by-sa-4.0";
 }
 
@@ -79,7 +79,7 @@ function readPassage(value: unknown): PassageActivity | null {
   const raw = value as RawPassage;
   if (typeof raw.id !== "string" || !raw.id.trim()) return null;
   if (typeof raw.title !== "string" || !raw.title.trim()) return null;
-  if (!isLanguage(raw.language) || !isLength(raw.length) || !isGenre(raw.genre) || !isSource(raw.license)) return null;
+  if (!isLanguage(raw.language) || !isLength(raw.length) || !isGenre(raw.genre) || !isLicense(raw.license)) return null;
   if (!Array.isArray(raw.paragraphs)) return null;
 
   const credit = readCredit(raw.credit, raw.license);
