@@ -33,31 +33,36 @@ it("bundles line, short passage, and long passage assets for both languages", ()
   );
   const koreanLine = activities.find((activity) => activity.id === "ko-line");
   expect(koreanLine?.kind === "line" ? koreanLine.lessons.length : 0).toBeGreaterThan(5);
-  for (const language of ["ko", "en"] as const) {
-    expect(passagesFor(language, "short").length).toBeGreaterThanOrEqual(5);
-    expect(passagesFor(language, "long").length).toBeGreaterThanOrEqual(1);
+  expect(passagesFor("ko", "short").length).toBeGreaterThanOrEqual(30);
+  expect(passagesFor("ko", "long").length).toBeGreaterThanOrEqual(5);
+  expect(passagesFor("en", "short").length).toBeGreaterThanOrEqual(10);
+  expect(passagesFor("en", "long").length).toBeGreaterThanOrEqual(5);
+  for (const passage of passageActivities) {
+    expect(passage.characterCount).toBeGreaterThanOrEqual(passage.length === "short" ? 200 : 2_000);
+    if (passage.length === "short") expect(passage.characterCount).toBeLessThanOrEqual(2_000);
+    expect(passage.lines.length).toBeGreaterThan(0);
   }
-  expect(passagesFor("ko", "short").every((passage) => passage.characterCount >= 200)).toBe(true);
-  expect(passagesFor("ko", "long").every((passage) => passage.characterCount >= 2_000)).toBe(true);
 });
 
 it("credits every copied passage and keeps extraction artifacts out of the text", () => {
   const copied = passageActivities.filter((passage) => passage.license !== "original");
-  expect(copied.map((passage) => passage.id).sort()).toEqual([
-    "constitution-preamble",
-    "gift-of-the-magi",
-    "hancom-typing-web",
-    "hangul-english",
-    "hangul-story",
-    "typewriter-history",
-    "unsworn-morning",
-    "wings-room",
-  ]);
-  for (const passage of copied) {
+  expect(copied.length).toBeGreaterThanOrEqual(38);
+  for (const passage of passageActivities) {
+    if (passage.license === "original") {
+      expect(passage.credit).toBeNull();
+      continue;
+    }
     expect(passage.credit).not.toBeNull();
+    expect(passage.credit?.author.trim()).not.toBe("");
+    expect(passage.credit?.source.trim()).not.toBe("");
     expect(passage.credit?.url).toMatch(/^https:\/\//);
-    expect(passage.text).not.toMatch(/섬네일|&#\d+;|\[https?:\/\//);
+    expect(passage.text).not.toMatch(/섬네일|\{\{|&#\d+;|&[a-z]+;|\[https?:\/\/|\[\d+\]|Listen to this text/i);
   }
-  expect(passageActivities.filter((passage) => passage.license === "original")
-    .every((passage) => passage.credit === null)).toBe(true);
+});
+
+it("keeps every copied passage closed on a complete sentence", () => {
+  for (const passage of passageActivities.filter((entry) => entry.license !== "original")) {
+    expect(passage.text).not.toMatch(/[:;,]$/);
+    expect(passage.text).toMatch(/[.!?。？！…"'”’)\]]$/);
+  }
 });
