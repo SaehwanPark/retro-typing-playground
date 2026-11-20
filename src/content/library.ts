@@ -39,13 +39,14 @@ export const firstKoreanLesson: TextLesson = sourceLessons[0] ?? {
 };
 
 export const activities: readonly Activity[] = [
-  ...textActivities(sourceLessons),
+  // Position practice anchors the menu as the first step for new typists.
   {
     id: "ko-positions",
     kind: "position",
     label: "두벌식 자리 연습",
     keys: ["KeyF", "KeyJ", "KeyD", "KeyK", "KeyS", "KeyL", "KeyA", "KeyG", "KeyH"],
   },
+  ...textActivities(sourceLessons),
 ];
 
 const words = Array.isArray(rawChallengeWords)

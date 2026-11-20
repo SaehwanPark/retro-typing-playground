@@ -247,10 +247,11 @@ const ko: InterfaceText = {
   screenCaptureSuccess: "화면을 PNG로 저장했습니다.",
   screenCaptureUnsupported: "이 브라우저에서는 화면 저장을 지원하지 않습니다.",
   activityLabel: (id, fallback) => ({
-    "ko-line": "한글 한 줄",
-    "ko-word": "한글 낱말",
-    "en-line": "영문 한 줄",
-    "en-word": "영문 낱말",
+    // The practice language is already chosen, so menu labels omit it.
+    "ko-line": "한 줄",
+    "ko-word": "낱말",
+    "en-line": "한 줄",
+    "en-word": "낱말",
     "ko-positions": "두벌식 자리 연습",
     "short-library": "짧은 글",
     "long-library": "긴 글",
@@ -388,11 +389,12 @@ const en: InterfaceText = {
   screenCaptureSuccess: "Saved the screen as a PNG.",
   screenCaptureUnsupported: "Screen capture is not supported in this browser.",
   activityLabel: (id, fallback) => ({
-    "ko-line": "Korean one-line drills",
-    "ko-word": "Korean words",
-    "en-line": "English one-line drills",
-    "en-word": "English words",
-    "ko-positions": "Korean keyboard positions",
+    // The practice language is already chosen, so menu labels omit it.
+    "ko-line": "One-line drills",
+    "ko-word": "Words",
+    "en-line": "One-line drills",
+    "en-word": "Words",
+    "ko-positions": "Two-set keyboard positions",
     "short-library": "Short passages",
     "long-library": "Long passages",
     challenge: "30-second word challenge",

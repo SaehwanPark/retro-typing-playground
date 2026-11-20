@@ -4,7 +4,7 @@ import { historyKey } from "../src/storage/historyStorage";
 
 test("settings are reachable by keyboard and return focus to the home entry", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("button", { name: "한글 한 줄" })).toBeFocused();
+  await expect(page.getByRole("button", { name: "두벌식 자리 연습" })).toBeFocused();
   await page.keyboard.press("ArrowUp");
   const settingsEntry = page.getByRole("button", { name: "환경설정" });
   await expect(settingsEntry).toBeFocused();
@@ -31,10 +31,9 @@ test("interface and practice languages are independent and filter home content",
   await page.getByRole("button", { name: "← Menu" }).click();
 
   await expect(page.getByRole("heading", { name: "Typing practice" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "English one-line drills" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "English words" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Korean words" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Korean keyboard positions" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "One-line drills" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Words" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Two-set keyboard positions" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Short passages" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Long passages" })).toBeVisible();
   await expect(page.getByRole("button", { name: "30-second word challenge" })).toHaveCount(0);
@@ -45,7 +44,7 @@ test("interface and practice languages are independent and filter home content",
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.locator("html")).toHaveAttribute("data-practice-language", "en");
-  await expect(page.getByRole("button", { name: "English words" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Words" })).toBeVisible();
 });
 
 test("speed units have language-specific defaults and save independently", async ({ page }) => {
@@ -86,7 +85,7 @@ test("A12 preferences migrate and English WPM stays consistent in results and hi
   await page.getByRole("button", { name: "← Menu" }).click();
 
   async function completeEnglishWord() {
-    await page.getByRole("button", { name: "English words" }).click();
+    await page.getByRole("button", { name: "Words" }).click();
     const input = page.getByRole("textbox", { name: "Type the prompt" });
     const prompt = await page.locator("#typing-target").getAttribute("aria-label");
     expect(prompt).not.toBeNull();
@@ -152,7 +151,7 @@ test("completion sound plays only after submitting a practice item", async ({ pa
     Object.defineProperty(window, "AudioContext", { configurable: true, value: AudioContextMock });
   }, appPreferencesKey);
   await page.goto("/");
-  await page.getByRole("button", { name: "한글 한 줄" }).click();
+  await page.getByRole("button", { name: "한 줄", exact: true }).click();
   const input = page.getByRole("textbox", { name: "따라 입력하기" });
   const prompt = await page.locator("#typing-target").getAttribute("aria-label");
   expect(prompt).not.toBeNull();
