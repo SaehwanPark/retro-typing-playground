@@ -147,6 +147,20 @@ export function hasReachedEnd(target: string, input: string): boolean {
   return splitCharacters(input).length >= splitCharacters(target).length;
 }
 
+/**
+ * Accuracy of the current input without speed. Speed is only reported when an
+ * item is submitted, so in-progress screens show accuracy alone.
+ */
+export function calculateLiveAccuracy(target: string, input: string, language: Language): TypingScore {
+  const targetCharacters = splitCharacters(target);
+  const typedCharacters = splitCharacters(input);
+  const correctCount = typedCharacters.reduce(
+    (count, character, index) => character === targetCharacters[index] ? count + 1 : count,
+    0,
+  );
+  return createTypingScore(correctCount, typedCharacters.length, null, language, null);
+}
+
 export function insertSpaceAtSelection(
   input: string,
   selectionStart: number,

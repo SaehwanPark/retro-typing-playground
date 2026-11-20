@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { passagesFor } from "../src/content/passages";
+import { appPreferencesKey } from "../src/storage/appPreferences";
 
 test("short passage lines advance in five-line pages and return to the selected passage", async ({ page }) => {
   const passage = passagesFor("ko", "short")[0]!;
@@ -40,6 +41,67 @@ test("long passages expose five-line pages and their genre and size", async ({ p
   await page.getByRole("textbox", { name: "따라 입력하기" }).press("Space");
   await expect(page.locator(".passage-page li.done")).toHaveCount(1);
   await expect(page.locator(".passage-page li.current")).toHaveText(new RegExp(passage.lines[1]!));
+});
+
+test("bundle speed and completion sound appear only when a five-line bundle ends", async ({ page }) => {
+  const passage = passagesFor("ko", "short")[0]!;
+  await page.addInitScript((key) => {
+    localStorage.setItem(key, JSON.stringify({
+      version: 2,
+      preferences: {
+        interfaceLanguage: "ko", practiceLanguage: "ko", completionSound: true,
+        typingSpeedUnits: { ko: "cpm", en: "wpm" },
+      },
+    }));
+    const target = window as typeof window & { __toneStarts?: number };
+    target.__toneStarts = 0;
+    class AudioContextMock {
+      currentTime = 0;
+      destination = {};
+      createOscillator() {
+        return {
+          type: "sine",
+          frequency: { setValueAtTime() {} },
+          connect() {},
+          start() { target.__toneStarts = (target.__toneStarts ?? 0) + 1; },
+          stop() {},
+          onended: null as (() => void) | null,
+        };
+      }
+      createGain() {
+        return { gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect() {} };
+      }
+      close() { return Promise.resolve(); }
+    }
+    Object.defineProperty(window, "AudioContext", { configurable: true, value: AudioContextMock });
+  }, appPreferencesKey);
+
+  const tones = () => page.evaluate(() => (window as typeof window & { __toneStarts?: number }).__toneStarts ?? 0);
+  await page.goto("/");
+  await page.getByRole("button", { name: "짧은 글" }).click();
+  await page.getByRole("button", { name: /새벽 강변/ }).click();
+  const input = page.getByRole("textbox", { name: "따라 입력하기" });
+
+  for (let index = 0; index < 4; index += 1) {
+    await input.fill(passage.lines[index]!);
+    await expect(page.locator(".previous-score")).toHaveCount(0);
+    await input.press("Space");
+  }
+  await expect(page.locator(".previous-score")).toHaveCount(0);
+  await expect.poll(tones).toBe(0);
+
+  await input.fill(passage.lines[4]!);
+  await input.press("Space");
+  const bundle = page.locator(".previous-score");
+  await expect(bundle).toBeVisible();
+  await expect(bundle.getByRole("heading")).toHaveText("완료한 묶음");
+  await expect(bundle.locator("dt")).toHaveCount(2);
+  await expect(bundle.locator("dt").nth(1)).toHaveText("타수/분");
+  await expect.poll(tones).toBe(1);
+
+  await input.fill(passage.lines[5]!);
+  await input.press("Space");
+  await expect.poll(tones).toBe(1);
 });
 
 test("copied passages show their author, source, and license in the list", async ({ page }) => {

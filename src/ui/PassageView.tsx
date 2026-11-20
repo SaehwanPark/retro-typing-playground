@@ -1,5 +1,5 @@
 import type { PassageActivity } from "../content/passages";
-import { scorePassage } from "../domain/passagePractice";
+import { passageAccuracy } from "../domain/passagePractice";
 import type { PassageSession } from "../domain/passagePractice";
 import { passageLinesPerPage } from "../domain/textLayout";
 import { PracticeView } from "./PracticeView";
@@ -34,9 +34,10 @@ export function PassageView({ activity, session, onInput, onSubmit, onBack, copy
       language={activity.language}
       prompt={target}
       session={session.line}
-      startedAt={session.startedAt}
-      scoreAt={(now) => scorePassage(target, session, now, activity.language)}
+      liveScore={() => passageAccuracy(target, session, activity.language)}
       speedUnit={speedUnit}
+      previous={session.lastBundle}
+      previousLabel={copy.passageBundleScore}
       backLabel={backLabel}
       copy={copy}
       context={

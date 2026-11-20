@@ -112,6 +112,7 @@ export type InterfaceText = Readonly<{
   passageCurrentLine: string;
   passageCompletedLine: string;
   passageNextLine: string;
+  passageBundleScore: string;
   genreLabel: (genre: string) => string;
   licenseLabel: (license: string) => string;
   screenCaptureError: string;
@@ -232,6 +233,7 @@ const ko: InterfaceText = {
   passageCurrentLine: "현재 줄",
   passageCompletedLine: "완료한 줄",
   passageNextLine: "다음 줄",
+  passageBundleScore: "완료한 묶음",
   genreLabel: (genre) => ({
     literature: "문학",
     nonfiction: "비문학",
@@ -374,6 +376,7 @@ const en: InterfaceText = {
   passageCurrentLine: "Current line",
   passageCompletedLine: "Completed line",
   passageNextLine: "Next line",
+  passageBundleScore: "Completed bundle",
   genreLabel: (genre) => ({
     literature: "Literature",
     nonfiction: "Nonfiction",
