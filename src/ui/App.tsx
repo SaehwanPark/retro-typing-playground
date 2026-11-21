@@ -232,7 +232,8 @@ export function App() {
     settingsEntry,
   ].map((activity) => ({
     ...activity,
-    label: `[${copy.menuTag(menuCategory(activity.kind))}] ${copy.activityLabel(activity.id, activity.label)}`,
+    label: copy.activityLabel(activity.id, activity.label),
+    tag: `[${copy.menuTag(menuCategory(activity.kind))}]`,
   }));
   const libraryPassages = currentScreen.screen === "library"
     ? passagesFor(practiceLanguage, currentScreen.length)

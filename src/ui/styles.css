@@ -141,16 +141,19 @@ h1 { margin: 0; font-size: clamp(1.55rem, 4vw, 2.55rem); line-height: 1.25; }
   color: inherit;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-inline-start: .28rem solid var(--accent);
+  border-inline-start: .28rem solid var(--line);
   border-radius: .2rem;
   padding: 1rem 1.2rem;
   text-align: start;
 }
 
-.lesson-button:hover, .lesson-button:focus-visible { background: var(--hover); }
+/* The accent edge marks the entry under the pointer or keyboard focus so nine repeated bars do not compete. */
+.lesson-button:hover, .lesson-button:focus-visible { background: var(--hover); border-inline-start-color: var(--accent); }
 .lesson-button strong, .lesson-button small { display: block; }
 .lesson-button small { margin-top: .25rem; color: var(--quiet); }
 .lesson-button small.credit { font-size: .78rem; opacity: .8; }
+.menu-tag { color: var(--quiet); font-weight: 500; }
+.lesson-button:hover .menu-tag, .lesson-button:focus-visible .menu-tag { color: var(--accent); }
 .lesson-button > span:last-child { color: var(--accent); font-family: var(--mono); }
 .activity-menu { display: grid; gap: .55rem; margin-top: 1.45rem; }
 
@@ -164,12 +167,14 @@ h1 { margin: 0; font-size: clamp(1.55rem, 4vw, 2.55rem); line-height: 1.25; }
 
 .target, .scores {
   margin: 1.35rem 0;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: .25rem;
 }
 
-.target { padding: 1rem clamp(.75rem, 3vw, 1.35rem); }
+/* The prompt and entry are the cards; scores read as a strip so panels do not stack into boxes. */
+.scores {
+  border-block: 1px solid var(--line);
+}
+
+.target { padding: 1rem clamp(.75rem, 3vw, 1.35rem); background: var(--panel); border: 1px solid var(--line); border-radius: .25rem; }
 .target-label, .entry label, .scores dt { font-size: .9rem; color: var(--quiet); }
 .target-label > span { font-variant-numeric: tabular-nums; }
 .target p {
@@ -256,9 +261,7 @@ kbd:not(:first-child) { margin-inline-start: .55rem; }
 .passage-page {
   margin: 1.1rem 0;
   padding: .8rem clamp(.75rem, 3vw, 1.25rem);
-  border: 1px solid var(--line);
-  border-radius: .25rem;
-  background: var(--panel);
+  border-inline-start: 2px solid var(--line);
   color: var(--quiet);
 }
 .passage-progress {
@@ -284,7 +287,8 @@ kbd:not(:first-child) { margin-inline-start: .55rem; }
 }
 .passage-page li > span { color: var(--quiet); font-family: var(--mono); font-size: .75rem; text-align: end; }
 .passage-page li.done { color: var(--correct); opacity: .75; }
-.passage-page li.current { color: var(--ink-strong); font-weight: 700; }
+/* The prompt panel already highlights the line being typed, so the context list only marks the row. */
+.passage-page li.current { color: var(--ink); }
 .passage-page li.current > span { color: var(--accent); }
 .passage-page li.upcoming { opacity: .7; }
 .keyboard-rows { display: grid; gap: .35rem; margin-top: 1rem; }
