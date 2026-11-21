@@ -4,9 +4,9 @@ import { historyKey } from "../src/storage/historyStorage";
 
 test("settings are reachable by keyboard and return focus to the home entry", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("button", { name: "두벌식 자리 연습" })).toBeFocused();
+  await expect(page.getByRole("button", { name: "[연습] 두벌식 자리 연습" })).toBeFocused();
   await page.keyboard.press("ArrowUp");
-  const settingsEntry = page.getByRole("button", { name: "환경설정" });
+  const settingsEntry = page.getByRole("button", { name: "[기타] 환경설정" });
   await expect(settingsEntry).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("button", { name: /인터페이스 언어/ })).toBeFocused();
@@ -17,13 +17,13 @@ test("settings are reachable by keyboard and return focus to the home entry", as
 
 test("completion sound is off by default", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "환경설정" }).click();
+  await page.getByRole("button", { name: "[기타] 환경설정" }).click();
   await expect(page.getByRole("button", { name: /완료 효과음/ })).toContainText("끔");
 });
 
 test("interface and practice languages are independent and filter home content", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "환경설정" }).click();
+  await page.getByRole("button", { name: "[기타] 환경설정" }).click();
   await page.getByRole("button", { name: /인터페이스 언어/ }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await page.getByRole("button", { name: /Practice language/ }).click();
@@ -31,25 +31,25 @@ test("interface and practice languages are independent and filter home content",
   await page.getByRole("button", { name: "← Menu" }).click();
 
   await expect(page.getByRole("heading", { name: "Typing practice" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "One-line drills" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Words" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Two-set keyboard positions" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Short passages" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Long passages" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "30-second word challenge" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Free typing" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Recent practice" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Settings" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "[Practice] One-line drills" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "[Practice] Words" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "[Practice] Two-set keyboard positions" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "[Practice] Short passages" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "[Practice] Long passages" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "[Game] 30-second word challenge" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "[Other] Free typing" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "[Other] Recent practice" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "[Other] Settings" })).toBeVisible();
 
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.locator("html")).toHaveAttribute("data-practice-language", "en");
-  await expect(page.getByRole("button", { name: "Words" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "[Practice] Words" })).toBeVisible();
 });
 
 test("speed units have language-specific defaults and save independently", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "환경설정" }).click();
+  await page.getByRole("button", { name: "[기타] 환경설정" }).click();
   const koreanUnit = page.getByRole("button", { name: /한국어 속도 단위/ });
   const englishUnit = page.getByRole("button", { name: /영어 속도 단위/ });
   await expect(koreanUnit).toContainText("분당 타수 (CPM)");
@@ -76,7 +76,7 @@ test("A12 preferences migrate and English WPM stays consistent in results and hi
     }));
   }, appPreferencesKey);
   await page.goto("/");
-  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("button", { name: "[Other] Settings" }).click();
   const koreanUnit = page.getByRole("button", { name: /Korean speed unit/ });
   await expect(koreanUnit).toContainText("Keystrokes/minute (CPM)");
   await koreanUnit.click();
@@ -85,7 +85,7 @@ test("A12 preferences migrate and English WPM stays consistent in results and hi
   await page.getByRole("button", { name: "← Menu" }).click();
 
   async function completeEnglishWord() {
-    await page.getByRole("button", { name: "Words" }).click();
+    await page.getByRole("button", { name: "[Practice] Words" }).click();
     const input = page.getByRole("textbox", { name: "Type the prompt" });
     const prompt = await page.locator("#typing-target").getAttribute("aria-label");
     expect(prompt).not.toBeNull();
@@ -114,7 +114,7 @@ test("A12 preferences migrate and English WPM stays consistent in results and hi
   await expect(page.locator('dl[aria-label="Previous result"] dt').nth(1)).toHaveText("Words/min");
   await expect(secondDisplayedSpeed).not.toBeNull();
   await page.getByRole("button", { name: "Return to Menu" }).click();
-  await page.getByRole("button", { name: "Recent practice" }).click();
+  await page.getByRole("button", { name: "[Other] Recent practice" }).click();
   await expect(page.getByRole("listitem")).toHaveCount(2);
   await expect(page.getByRole("listitem").first()).toContainText("words/min");
 });
@@ -151,7 +151,7 @@ test("completion sound plays only after submitting a practice item", async ({ pa
     Object.defineProperty(window, "AudioContext", { configurable: true, value: AudioContextMock });
   }, appPreferencesKey);
   await page.goto("/");
-  await page.getByRole("button", { name: "한 줄", exact: true }).click();
+  await page.getByRole("button", { name: "[연습] 한 줄", exact: true }).click();
   const input = page.getByRole("textbox", { name: "따라 입력하기" });
   const prompt = await page.locator("#typing-target").getAttribute("aria-label");
   expect(prompt).not.toBeNull();

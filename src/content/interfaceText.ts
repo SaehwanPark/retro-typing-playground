@@ -1,6 +1,9 @@
 import type { Language } from "./lessons";
 import type { TypingSpeedUnit } from "../domain/typingSpeed";
 
+/** Home-menu groups keep practice, game, and utility entries visually distinct. */
+export type MenuCategory = "practice" | "game" | "other";
+
 export type InterfaceText = Readonly<{
   typingPractice: string;
   menu: string;
@@ -119,6 +122,7 @@ export type InterfaceText = Readonly<{
   screenCaptureSuccess: string;
   screenCaptureUnsupported: string;
   activityLabel: (id: string, fallback: string) => string;
+  menuTag: (category: MenuCategory) => string;
   modeLabel: (mode: string) => string;
 }>;
 
@@ -262,6 +266,7 @@ const ko: InterfaceText = {
     history: "최근 연습 기록",
     settings: "환경설정",
   }[id] ?? fallback),
+  menuTag: (category) => ({ practice: "연습", game: "게임", other: "기타" }[category]),
   modeLabel: (mode) => ({ word: "낱말", line: "한 줄", short: "짧은 글", long: "긴 글", position: "자리" }[mode] ?? mode),
 };
 
@@ -405,6 +410,7 @@ const en: InterfaceText = {
     history: "Recent practice",
     settings: "Settings",
   }[id] ?? fallback),
+  menuTag: (category) => ({ practice: "Practice", game: "Game", other: "Other" }[category]),
   modeLabel: (mode) => ({ word: "Words", line: "One line", short: "Short passages", long: "Long passages", position: "Positions" }[mode] ?? mode),
 };
 
