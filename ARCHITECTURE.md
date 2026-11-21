@@ -55,7 +55,8 @@ src/
 │   ├── usePracticeFont.ts
 │   └── useScreenCapture.ts # Ctrl+S 경계, IME 조합 중 차단
 └── ui/
-    ├── App.tsx             # 화면 조립, 초점 복구, 효과음 트리거
+    ├── App.tsx             # 화면 조립, 효과음 트리거
+    ├── useScreenFocus.ts   # 탭 복귀·환경설정 왕복 초점 복구
     ├── TypingInput.tsx     # IME 이벤트 어댑터 (가장 민감한 경계)
     ├── PracticeView.tsx    # 낱말·한 줄·글 한 줄 공통 화면
     ├── PassageView.tsx     # 5줄 묶음 문맥
@@ -157,11 +158,11 @@ html[data-practice-language="en"][data-practice-font="serif"] { … }
 - `--practice-font`는 제시문·입력창·글 문맥·연습장·도전 낱말에만 적용하고, 메뉴·자판 도식·점수는 기본 글꼴을 유지합니다.
 - 외부 글꼴·CDN을 쓰지 않습니다(오프라인 유지).
 
-## 초점 관리 (`ui/App.tsx`, `ui/useFocus.ts`)
+## 초점 관리 (`ui/useScreenFocus.ts`, `ui/useFocus.ts`)
 
-키보드만으로 전체 흐름을 쓸 수 있어야 하므로 초점은 명시적으로 관리합니다.
+키보드만으로 전체 흐름을 쓸 수 있어야 하므로 초점은 명시적으로 관리합니다. 탭 복귀와 환경설정 왕복에 관련된 상태·리스너는 `useScreenFocus`가 맡고, `App`은 화면 조립과 효과음 트리거에 집중합니다.
 
-- 화면 전환 시 `restoreContentFocus`가 화면별 대상(입력창, 첫 메뉴 항목, 결과 제목 등)을 찾아 초점을 둡니다.
+- 화면 전환 시 `restoreContentFocus`가 화면별 대상(입력창, 첫 메뉴 항목, 결과 제목 등)을 찾아 초점을 둡니다. `contentState`는 환경설정 래퍼에서 실제 화면을 꺼내는 단일 규칙입니다.
 - 환경설정은 열기 직전 요소를 기억했다가 닫을 때 복원합니다.
 - `visibilitychange`/`blur`/`focus`/`pageshow`로 탭 복귀 시 마지막 유효 컨트롤에 초점을 되돌립니다(없으면 화면 기본 대상).
 - 설정 메뉴는 roving tabindex로 탭 정지점을 하나만 둡니다.
@@ -191,6 +192,8 @@ html[data-practice-language="en"][data-practice-font="serif"] { … }
 | 실제 입력기 | 수동 확인 | OS 한국어 IME 조합, Alt+Tab 복귀, 확대 |
 
 Playwright의 `CompositionEvent`는 앱의 이벤트 순서 처리를 검증할 뿐, 실제 OS 입력기를 대신하지 않습니다. 이 구분을 [docs/PLATFORM-VERIFICATION.md](docs/PLATFORM-VERIFICATION.md)에 유지합니다.
+
+여러 E2E 파일이 같은 준비 코드를 쓰면 `e2e/helpers/`에 둡니다. 현재 `audio.ts`의 `stubCompletionTone`(Web Audio 스텁과 재생 횟수 조회)과 `preferences.ts`의 `seedPreferences`(스키마 버전별 설정 주입)가 있으며, 효과음 재생 횟수와 설정 이전을 한 방식으로만 관찰합니다. 시간에 의존하는 E2E는 실제 대기 대신 `page.clock` 가상 시계를 씁니다.
 
 `npm run verify`가 `test → build → test:e2e`를 순서대로 실행합니다. 코드나 런타임 동작이 바뀌지 않는 문서 변경에는 테스트·CI를 돌리지 않습니다.
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import {
   challengeEntry,
   completionTime,
@@ -7,7 +7,6 @@ import {
   settingsEntry,
   usePracticeState,
 } from "../app/usePractice";
-import type { PracticeState } from "../app/usePractice";
 import { useAppPreferences } from "../app/useAppPreferences";
 import { useHistory } from "../app/useHistory";
 import { useTextSize } from "../app/useTextSize";
@@ -36,15 +35,12 @@ import { PracticeView } from "./PracticeView";
 import { ResultView } from "./ResultView";
 import { ScreenCaptureControl } from "./ScreenCaptureControl";
 import { playCompletionTone } from "./completionSound";
+import { contentState, useScreenFocus } from "./useScreenFocus";
 
 function shouldPlayForCurrentSubmission(state: ReturnType<typeof usePracticeState>["state"], input?: string): boolean {
   if (state.screen === "practice") return hasReachedEnd(state.lesson.text, input ?? state.session.input);
   if (state.screen === "passage") return submissionEndsBundle(state.activity.lines, state.session, input);
   return false;
-}
-
-function contentState(state: PracticeState) {
-  return state.screen === "settings" ? state.returnState : state;
 }
 
 function activityLanguage(activity: Activity | PassageActivity): Language {
@@ -59,54 +55,11 @@ function menuCategory(kind: string): MenuCategory {
   return "practice";
 }
 
-function restoreContentFocus(root: HTMLDivElement | null, state: PracticeState): void {
-  if (!root) return;
-  const visible = contentState(state);
-  let target: HTMLElement | null = null;
-  if (visible.screen === "menu" || visible.screen === "library") {
-    target = Array.from(root.querySelectorAll<HTMLElement>("button[data-activity]"))
-      .find((button) => button.dataset.activity === visible.selected) ?? null;
-  } else if (visible.screen === "practice" || visible.screen === "passage") {
-    target = root.querySelector("#typing-input");
-  } else if (visible.screen === "free-practice") {
-    target = root.querySelector("#free-practice-input");
-  } else if (visible.screen === "positions") {
-    target = root.querySelector(".keyboard");
-  } else if (visible.screen === "result" || visible.screen === "history") {
-    target = root.querySelector("h1[tabindex='-1']");
-  } else if (visible.screen === "challenge") {
-    target = root.querySelector("#typing-input") ?? root.querySelector("button:not(.back)");
-  }
-  target?.focus({ preventScroll: true });
-}
-
-function canRestoreFocus(root: HTMLElement | null, target: HTMLElement): boolean {
-  return root !== null && root.contains(target) &&
-    target.closest("[hidden]") === null && !target.matches(":disabled");
-}
-
-function restoreScreenFocus(root: HTMLElement | null, screenContent: HTMLDivElement | null, state: PracticeState): void {
-  if (state.screen === "settings" && root) {
-    const selected = root.querySelector<HTMLButtonElement>(".settings-menu [data-setting-row]:not(:disabled)");
-    const heading = root.querySelector<HTMLElement>(".settings-screen h1[tabindex='-1']");
-    (selected ?? heading)?.focus({ preventScroll: true });
-    return;
-  }
-  restoreContentFocus(screenContent, state);
-}
-
 export function App() {
-  const shell = useRef<HTMLElement>(null);
-  const screenContent = useRef<HTMLDivElement>(null);
-  const focusBeforeSettings = useRef<HTMLElement | null>(null);
-  const lastAppFocus = useRef<HTMLElement | null>(null);
-  const focusWasLost = useRef(false);
-  const settingsWereOpen = useRef(false);
   const practice = usePracticeState();
   const { state, pending, latest, dispatch, acknowledge } = practice;
-  const stateForFocus = useRef(state);
-  stateForFocus.current = state;
   const currentScreen = contentState(state);
+  const { shell, screenContent, captureSettingsOrigin } = useScreenFocus(state);
   const appPreferences = useAppPreferences();
   const { interfaceLanguage, practiceLanguage, completionSound, typingSpeedUnits } = appPreferences.preferences;
   const copy = interfaceText(interfaceLanguage);
@@ -122,7 +75,7 @@ export function App() {
     .filter(Boolean).join(" ");
   const back = () => dispatch({ type: "return-to-menu" });
   const openSettings = () => {
-    focusBeforeSettings.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    captureSettingsOrigin();
     dispatch({ type: "open-settings" });
   };
   const closeSettings = () => dispatch({ type: "close-settings" });
@@ -145,76 +98,6 @@ export function App() {
     document.documentElement.lang = interfaceLanguage;
     document.documentElement.dataset.practiceLanguage = practiceLanguage;
   }, [interfaceLanguage, practiceLanguage]);
-
-  useEffect(() => {
-    let restoreFrame: number | null = null;
-
-    function rememberFocus(event: FocusEvent) {
-      if (event.target instanceof HTMLElement && canRestoreFocus(shell.current, event.target)) {
-        lastAppFocus.current = event.target;
-      }
-    }
-
-    function markFocusLost() {
-      const active = document.activeElement;
-      if (active instanceof HTMLElement && canRestoreFocus(shell.current, active)) {
-        lastAppFocus.current = active;
-      }
-      focusWasLost.current = true;
-    }
-
-    function restoreFocus() {
-      if (!focusWasLost.current || document.visibilityState === "hidden") return;
-      const previous = lastAppFocus.current;
-      if (previous && canRestoreFocus(shell.current, previous)) {
-        previous.focus({ preventScroll: true });
-      } else {
-        restoreScreenFocus(shell.current, screenContent.current, stateForFocus.current);
-      }
-      const active = document.activeElement;
-      if (active instanceof HTMLElement && canRestoreFocus(shell.current, active)) {
-        lastAppFocus.current = active;
-        focusWasLost.current = false;
-      }
-    }
-
-    function scheduleFocusRestore() {
-      if (restoreFrame !== null) window.cancelAnimationFrame(restoreFrame);
-      restoreFrame = window.requestAnimationFrame(() => {
-        restoreFrame = null;
-        restoreFocus();
-      });
-    }
-
-    function handleVisibilityChange() {
-      if (document.visibilityState === "hidden") markFocusLost();
-      else scheduleFocusRestore();
-    }
-
-    document.addEventListener("focusin", rememberFocus);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("blur", markFocusLost);
-    window.addEventListener("focus", scheduleFocusRestore);
-    window.addEventListener("pageshow", scheduleFocusRestore);
-    return () => {
-      document.removeEventListener("focusin", rememberFocus);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("blur", markFocusLost);
-      window.removeEventListener("focus", scheduleFocusRestore);
-      window.removeEventListener("pageshow", scheduleFocusRestore);
-      if (restoreFrame !== null) window.cancelAnimationFrame(restoreFrame);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (settingsWereOpen.current && state.screen !== "settings") {
-      const previousFocus = focusBeforeSettings.current;
-      if (previousFocus?.isConnected) previousFocus.focus();
-      else restoreContentFocus(screenContent.current, state);
-      focusBeforeSettings.current = null;
-    }
-    settingsWereOpen.current = state.screen === "settings";
-  }, [state.screen]);
 
   const languageActivities = activities.filter((activity) => {
     if (activity.kind === "position") return practiceLanguage === "ko";

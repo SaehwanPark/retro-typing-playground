@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { passagesFor } from "../src/content/passages";
-import { appPreferencesKey } from "../src/storage/appPreferences";
+import { seedPreferences } from "./helpers/preferences";
+import { stubCompletionTone } from "./helpers/audio";
 
 test("short passage lines advance in five-line pages and return to the selected passage", async ({ page }) => {
   const passage = passagesFor("ko", "short")[0]!;
@@ -45,38 +46,12 @@ test("long passages expose five-line pages and their genre and size", async ({ p
 
 test("bundle speed and completion sound appear only when a five-line bundle ends", async ({ page }) => {
   const passage = passagesFor("ko", "short")[0]!;
-  await page.addInitScript((key) => {
-    localStorage.setItem(key, JSON.stringify({
-      version: 2,
-      preferences: {
-        interfaceLanguage: "ko", practiceLanguage: "ko", completionSound: true,
-        typingSpeedUnits: { ko: "cpm", en: "wpm" },
-      },
-    }));
-    const target = window as typeof window & { __toneStarts?: number };
-    target.__toneStarts = 0;
-    class AudioContextMock {
-      currentTime = 0;
-      destination = {};
-      createOscillator() {
-        return {
-          type: "sine",
-          frequency: { setValueAtTime() {} },
-          connect() {},
-          start() { target.__toneStarts = (target.__toneStarts ?? 0) + 1; },
-          stop() {},
-          onended: null as (() => void) | null,
-        };
-      }
-      createGain() {
-        return { gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect() {} };
-      }
-      close() { return Promise.resolve(); }
-    }
-    Object.defineProperty(window, "AudioContext", { configurable: true, value: AudioContextMock });
-  }, appPreferencesKey);
+  await seedPreferences(page, {
+    interfaceLanguage: "ko", practiceLanguage: "ko", completionSound: true,
+    typingSpeedUnits: { ko: "cpm", en: "wpm" },
+  });
+  const tones = await stubCompletionTone(page);
 
-  const tones = () => page.evaluate(() => (window as typeof window & { __toneStarts?: number }).__toneStarts ?? 0);
   await page.goto("/");
   await page.getByRole("button", { name: "[연습] 짧은 글" }).click();
   await page.getByRole("button", { name: /새벽 강변/ }).click();
