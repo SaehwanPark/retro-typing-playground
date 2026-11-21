@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   colorThemeKey,
   defaultColorTheme,
+  migrateColorTheme,
   readColorTheme,
   saveColorTheme,
 } from "../storage/settingsStorage";
@@ -19,11 +20,18 @@ export function useColorTheme() {
   }, [theme]);
 
   useEffect(() => {
+    let active = true;
+    void migrateColorTheme().then(() => {
+      if (active) setStored(readColorTheme());
+    });
     function sync(event: StorageEvent) {
       if (event.key === colorThemeKey || event.key === null) setStored(readColorTheme());
     }
     window.addEventListener("storage", sync);
-    return () => window.removeEventListener("storage", sync);
+    return () => {
+      active = false;
+      window.removeEventListener("storage", sync);
+    };
   }, []);
 
   async function change(nextTheme: ColorTheme, reset = false) {

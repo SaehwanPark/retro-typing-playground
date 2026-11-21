@@ -5,6 +5,7 @@ import type { TypingSpeedUnit } from "../domain/typingSpeed";
 export type MenuCategory = "practice" | "game" | "other";
 
 export type InterfaceText = Readonly<{
+  brand: string;
   typingPractice: string;
   menu: string;
   back: string;
@@ -130,6 +131,7 @@ export type InterfaceText = Readonly<{
 }>;
 
 const ko: InterfaceText = {
+  brand: "타각",
   typingPractice: "타자 연습",
   menu: "메뉴",
   back: "← 뒤로",
@@ -277,6 +279,7 @@ const ko: InterfaceText = {
 };
 
 const en: InterfaceText = {
+  brand: "Tagak",
   typingPractice: "Typing practice",
   menu: "Menu",
   back: "← Back",

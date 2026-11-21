@@ -1,8 +1,16 @@
 import type { Language } from "../content/lessons";
+import {
+  ensureStorageMigrated,
+  migrateStorageValue,
+  readStorageValue,
+  resetStorageValue,
+  storageKeys,
+  withStorageEntryLock,
+} from "./legacyStorage";
 
-export const settingsKey = "retro-typing-playground:display";
-export const colorThemeKey = "retro-typing-playground:color-theme";
-export const practiceFontKey = "retro-typing-playground:practice-font";
+export const settingsKey = storageKeys.display;
+export const colorThemeKey = storageKeys.colorTheme;
+export const practiceFontKey = storageKeys.practiceFont;
 export const textSizes = {
   standard: "기본",
   large: "크게",
@@ -42,10 +50,9 @@ export function isPracticeFont(value: unknown): value is PracticeFont {
   return typeof value === "string" && Object.hasOwn(practiceFonts, value);
 }
 
-export function readTextSize(): TextSize | null {
+function decodeTextSize(raw: string | null): TextSize | null {
+  if (raw === null) return defaultSize;
   try {
-    const raw = localStorage.getItem(settingsKey);
-    if (raw === null) return defaultSize;
     const value: unknown = JSON.parse(raw);
     if (typeof value !== "object" || value === null || !("version" in value) ||
         value.version !== 1 || !("size" in value) || !isTextSize(value.size)) {
@@ -57,13 +64,25 @@ export function readTextSize(): TextSize | null {
   }
 }
 
+export function readTextSize(): TextSize | null {
+  try {
+    return decodeTextSize(readStorageValue("display"));
+  } catch {
+    return null;
+  }
+}
+
+export function migrateTextSize(): Promise<boolean> {
+  return ensureStorageMigrated("display", (raw) => decodeTextSize(raw) !== null);
+}
+
 export async function saveTextSize(size: TextSize, reset: boolean): Promise<boolean> {
   try {
-    return await navigator.locks.request(settingsKey, () => {
+    return await withStorageEntryLock("display", () => {
       if (reset) {
-        localStorage.removeItem(settingsKey);
-        return true;
+        return resetStorageValue("display");
       }
+      if (!migrateStorageValue("display", (raw) => decodeTextSize(raw) !== null)) return false;
       if (readTextSize() === null) return false;
 
       localStorage.setItem(settingsKey, JSON.stringify({ version: 1, size }));
@@ -74,10 +93,9 @@ export async function saveTextSize(size: TextSize, reset: boolean): Promise<bool
   }
 }
 
-export function readColorTheme(): ColorTheme | null {
+function decodeColorTheme(raw: string | null): ColorTheme | null {
+  if (raw === null) return defaultColorTheme;
   try {
-    const raw = localStorage.getItem(colorThemeKey);
-    if (raw === null) return defaultColorTheme;
     const value: unknown = JSON.parse(raw);
     if (typeof value !== "object" || value === null || !("version" in value) ||
         value.version !== 1 || !("theme" in value) || !isColorTheme(value.theme)) {
@@ -89,13 +107,25 @@ export function readColorTheme(): ColorTheme | null {
   }
 }
 
+export function readColorTheme(): ColorTheme | null {
+  try {
+    return decodeColorTheme(readStorageValue("colorTheme"));
+  } catch {
+    return null;
+  }
+}
+
+export function migrateColorTheme(): Promise<boolean> {
+  return ensureStorageMigrated("colorTheme", (raw) => decodeColorTheme(raw) !== null);
+}
+
 export async function saveColorTheme(theme: ColorTheme, reset: boolean): Promise<boolean> {
   try {
-    return await navigator.locks.request(colorThemeKey, () => {
+    return await withStorageEntryLock("colorTheme", () => {
       if (reset) {
-        localStorage.removeItem(colorThemeKey);
-        return true;
+        return resetStorageValue("colorTheme");
       }
+      if (!migrateStorageValue("colorTheme", (raw) => decodeColorTheme(raw) !== null)) return false;
       if (readColorTheme() === null) return false;
 
       localStorage.setItem(colorThemeKey, JSON.stringify({ version: 1, theme }));
@@ -106,10 +136,9 @@ export async function saveColorTheme(theme: ColorTheme, reset: boolean): Promise
   }
 }
 
-export function readPracticeFonts(): PracticeFonts | null {
+function decodePracticeFonts(raw: string | null): PracticeFonts | null {
+  if (raw === null) return defaultPracticeFonts;
   try {
-    const raw = localStorage.getItem(practiceFontKey);
-    if (raw === null) return defaultPracticeFonts;
     const value: unknown = JSON.parse(raw);
     if (typeof value !== "object" || value === null || !("version" in value)) {
       return null;
@@ -128,6 +157,18 @@ export function readPracticeFonts(): PracticeFonts | null {
   }
 }
 
+export function readPracticeFonts(): PracticeFonts | null {
+  try {
+    return decodePracticeFonts(readStorageValue("practiceFont"));
+  } catch {
+    return null;
+  }
+}
+
+export function migratePracticeFonts(): Promise<boolean> {
+  return ensureStorageMigrated("practiceFont", (raw) => decodePracticeFonts(raw) !== null);
+}
+
 export function readPracticeFont(language: Language = "ko"): PracticeFont | null {
   return readPracticeFonts()?.[language] ?? null;
 }
@@ -138,17 +179,14 @@ export async function savePracticeFont(
   language: Language = "ko",
 ): Promise<boolean> {
   try {
-    return await navigator.locks.request(practiceFontKey, () => {
+    return await withStorageEntryLock("practiceFont", () => {
+      if (!migrateStorageValue("practiceFont", (raw) => decodePracticeFonts(raw) !== null)) return false;
       const current = readPracticeFonts();
-      if (reset && current === null) {
-        localStorage.removeItem(practiceFontKey);
-        return true;
-      }
+      if (reset && current === null) return resetStorageValue("practiceFont");
       if (current === null) return false;
       const fonts = { ...current, [language]: reset ? defaultPracticeFont : font };
       if (fonts.ko === defaultPracticeFont && fonts.en === defaultPracticeFont) {
-        localStorage.removeItem(practiceFontKey);
-        return true;
+        return resetStorageValue("practiceFont");
       }
       localStorage.setItem(practiceFontKey, JSON.stringify({ version: 2, fonts }));
       return true;
@@ -160,10 +198,7 @@ export async function savePracticeFont(
 
 export async function resetPracticeFonts(): Promise<boolean> {
   try {
-    return await navigator.locks.request(practiceFontKey, () => {
-      localStorage.removeItem(practiceFontKey);
-      return true;
-    });
+    return await withStorageEntryLock("practiceFont", () => resetStorageValue("practiceFont"));
   } catch {
     return false;
   }

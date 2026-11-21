@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { recentRecords } from "../domain/history";
 import type { PracticeRecord } from "../domain/history";
-import { clearHistory, historyKey, readHistory, saveRecord } from "../storage/historyStorage";
+import { clearHistory, historyKey, migrateHistory, readHistory, saveRecord } from "../storage/historyStorage";
 
 export function useHistory(record: PracticeRecord | undefined, acknowledge: (id: string) => void) {
   const [saved, setSaved] = useState(readHistory);
@@ -9,11 +9,18 @@ export function useHistory(record: PracticeRecord | undefined, acknowledge: (id:
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
+    let active = true;
+    void migrateHistory().then(() => {
+      if (active) setSaved(readHistory());
+    });
     function sync(event: StorageEvent) {
       if (event.key === historyKey || event.key === null) setSaved(readHistory());
     }
     window.addEventListener("storage", sync);
-    return () => window.removeEventListener("storage", sync);
+    return () => {
+      active = false;
+      window.removeEventListener("storage", sync);
+    };
   }, []);
 
   useEffect(() => {

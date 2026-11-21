@@ -4,8 +4,16 @@ import {
   isTypingSpeedUnit,
 } from "../domain/typingSpeed";
 import type { TypingSpeedUnits } from "../domain/typingSpeed";
+import {
+  ensureStorageMigrated,
+  migrateStorageValue,
+  readStorageValue,
+  resetStorageValue,
+  storageKeys,
+  withStorageEntryLock,
+} from "./legacyStorage";
 
-export const appPreferencesKey = "retro-typing-playground:preferences";
+export const appPreferencesKey = storageKeys.preferences;
 
 export type AppPreferences = Readonly<{
   interfaceLanguage: Language;
@@ -48,10 +56,9 @@ function isAppPreferences(value: unknown): value is AppPreferences {
     "en" in value.typingSpeedUnits && isTypingSpeedUnit(value.typingSpeedUnits.en);
 }
 
-export function readAppPreferences(): AppPreferencesRead {
+function decodeAppPreferences(raw: string | null): AppPreferencesRead {
+  if (raw === null) return { value: defaultAppPreferences, valid: true };
   try {
-    const raw = localStorage.getItem(appPreferencesKey);
-    if (raw === null) return { value: defaultAppPreferences, valid: true };
     const value: unknown = JSON.parse(raw);
     if (typeof value !== "object" || value === null || !("version" in value) || !("preferences" in value)) {
       return { value: defaultAppPreferences, valid: false };
@@ -71,16 +78,32 @@ export function readAppPreferences(): AppPreferencesRead {
   }
 }
 
+export function readAppPreferences(): AppPreferencesRead {
+  try {
+    return decodeAppPreferences(readStorageValue("preferences"));
+  } catch {
+    return { value: defaultAppPreferences, valid: false };
+  }
+}
+
+function isValidAppPreferences(raw: string): boolean {
+  return decodeAppPreferences(raw).valid;
+}
+
+export function migrateAppPreferences(): Promise<boolean> {
+  return ensureStorageMigrated("preferences", isValidAppPreferences);
+}
+
 export async function saveAppPreferences(
   preferences: AppPreferences,
   reset = false,
 ): Promise<boolean> {
   try {
-    return await navigator.locks.request(appPreferencesKey, () => {
+    return await withStorageEntryLock("preferences", () => {
       if (reset) {
-        localStorage.removeItem(appPreferencesKey);
-        return true;
+        return resetStorageValue("preferences");
       }
+      if (!migrateStorageValue("preferences", isValidAppPreferences)) return false;
       if (!readAppPreferences().valid) return false;
       localStorage.setItem(appPreferencesKey, JSON.stringify({ version: 2, preferences }));
       return true;

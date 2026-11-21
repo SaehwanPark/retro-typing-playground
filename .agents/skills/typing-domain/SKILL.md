@@ -1,6 +1,6 @@
 ---
 name: typing-domain
-description: Retro Typing Playground의 연습 자료, 한글 IME, 세션 상태, 점수 계산, 로컬 기록을 설계·구현·검토한다.
+description: 타각(Tagak)의 연습 자료, 한글 IME, 세션 상태, 점수 계산, 로컬 기록을 설계·구현·검토한다.
 ---
 
 # 타자 연습 도메인

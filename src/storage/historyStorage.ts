@@ -1,8 +1,16 @@
 import { modeLabels, recentRecords } from "../domain/history";
 import type { PracticeRecord } from "../domain/history";
 import type { TypingScore } from "../domain/typing";
+import {
+  ensureStorageMigrated,
+  migrateStorageValue,
+  readStorageValue,
+  resetStorageValue,
+  storageKeys,
+  withStorageEntryLock,
+} from "./legacyStorage";
 
-export const historyKey = "retro-typing-playground:history";
+export const historyKey = storageKeys.history;
 const historyVersion = 3;
 const previousHistoryVersions = new Set([1, 2]);
 const legacyModeNames: Record<string, PracticeRecord["mode"]> = {
@@ -118,15 +126,22 @@ export function decodeHistory(raw: string | null): HistoryRead {
 
 export function readHistory(): HistoryRead {
   try {
-    return decodeHistory(localStorage.getItem(historyKey));
+    return decodeHistory(readStorageValue("history"));
   } catch {
     return { ok: false, records: [] };
   }
 }
 
+export function migrateHistory(): Promise<boolean> {
+  return ensureStorageMigrated("history", (raw) => decodeHistory(raw).ok);
+}
+
 export async function saveRecord(record: PracticeRecord): Promise<HistoryRead> {
   try {
-    return await navigator.locks.request(historyKey, () => {
+    return await withStorageEntryLock("history", () => {
+      if (!migrateStorageValue("history", (raw) => decodeHistory(raw).ok)) {
+        return { ok: false, records: [] };
+      }
       const previous = readHistory();
       if (!previous.ok) return previous;
       if (previous.records.some((entry) => entry.id === record.id)) return previous;
@@ -141,8 +156,7 @@ export async function saveRecord(record: PracticeRecord): Promise<HistoryRead> {
 
 export async function clearHistory(): Promise<boolean> {
   try {
-    await navigator.locks.request(historyKey, () => localStorage.removeItem(historyKey));
-    return true;
+    return await withStorageEntryLock("history", () => resetStorageValue("history"));
   } catch {
     return false;
   }

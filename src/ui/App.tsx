@@ -138,7 +138,7 @@ export function App() {
   return (
     <main ref={shell} className="shell" data-text-size={textSize.size}>
       <header className="masthead">
-        <span className="brand"><span aria-hidden="true">▰</span> Retro Typing Playground</span>
+        <span className="brand"><span aria-hidden="true">▰</span> {copy.brand}</span>
         <div className="masthead-actions">
           {currentScreen.screen !== "menu" && state.screen !== "settings" && (
             <button
