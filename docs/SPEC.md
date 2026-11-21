@@ -1,6 +1,6 @@
 # SPEC
 
-현재 버전은 `v0.0.23`이다. 제품의 동작과 기술 결정은 [프로젝트 명세](PROJECT-SPEC.md)를 따른다. 사용자 안내는 [README](../README.md), 구조는 [ARCHITECTURE](../ARCHITECTURE.md), 버전별 변경은 [CHANGELOG](../CHANGELOG.md)에 있다.
+현재 버전은 `v0.0.24`이다. 제품의 동작과 기술 결정은 [프로젝트 명세](PROJECT-SPEC.md)를 따른다. 사용자 안내는 [README](../README.md), 구조는 [ARCHITECTURE](../ARCHITECTURE.md), 버전별 변경은 [CHANGELOG](../CHANGELOG.md)에 있다.
 
 ## 상태 표시
 
@@ -133,6 +133,12 @@
   - 짧은 글·긴 글의 시간을 첫 입력부터의 벽시계 시간이 아니라 각 줄의 첫 확정 입력부터 제출까지 시간의 합으로 바꿨다. 줄 전환 뒤 다음 줄 첫 입력 전까지의 대기 시간은 글 전체·묶음 속도에서 제외해 한 줄 연습과 같은 기준으로 타수를 측정한다. 줄별 시간은 기존 `PracticeSession` 계산을 그대로 쓰고 `PassageProgress`가 합산한다.
   - 루트 `TEXT-LICENSES.md`를 추가했다. 연습문별 ID·제목·라이선스·저자·출처·원문 URL, 라이선스 설명, 새 자료 추가 절차, 검증·수정 명령을 담는다. 문서는 `src/content/textLicenseInventory.ts`가 앱과 같은 콘텐츠 모듈에서 생성하고, `npm run text-licenses:update`로 갱신한다. `textLicenseInventory.test.ts`가 문서와 애셋 메타데이터의 일치를 검사한다.
   - `npm run verify` 통과: Vitest 9개 파일 33개 테스트, 프로덕션 빌드, Playwright E2E 37개. 줄 사이 대기 시간 제외, 묶음·글 전체 시간 누적, 메뉴 태그(한국어·영어), 라이선스 문서 일치와 애셋 누락 방지를 확인했다. Windows 11 + Chrome 수동 확인은 이 변경에서 수행하지 않았다.
+
+- [x] **A25 · 낱말 연습 순차 진행** · `v0.0.24`
+  - 이슈 [#41](https://github.com/SaehwanPark/retro-typing-playground/issues/41): `낱말` 모드가 첫 낱말만 연습하던 상태 전이를 고쳤다. 낱말 제출 결과에 진행 위치(`index`·`total`·낱말 제목)를 담고, 결과 화면의 `Enter`·‘다음 낱말’이 다음 낱말로 이어간다. 마지막 낱말 뒤에는 첫 낱말로 돌아오고, ‘다시 연습’은 방금 끝낸 낱말을 반복한다.
+  - 진행 정책은 낱말마다 결과를 보여주는 기존 제품 의도를 유지하는 것이며, 한 줄 연습처럼 결과 화면 없이 이어가지 않는다. 결과 화면에는 `3 / 8번째 낱말` 형태의 위치를 표시하고 제목을 그 낱말로 보여준다. 조작은 키보드만으로 가능하며 결과에서 다음 낱말로 넘어가면 입력창 초점이 유지된다.
+  - 기존 `reduceTextPractice`의 작은 수정으로 처리하고 새 추상화나 모드는 도입하지 않았다. `continue` 이벤트를 추가하고 `result` 상태에 `wordProgress`를 두었다.
+  - `npm run verify` 통과: Vitest 10개 파일 38개 테스트, 프로덕션 빌드, Playwright E2E 39개. 첫 낱말 → 다음 낱말 → 마지막 낱말 → 첫 낱말 순환, 방금 끝낸 낱말 재시도, 결과 위치 표시, 키보드 이어가기를 확인했다. Windows 11 + Chrome 수동 확인은 이 변경에서 수행하지 않았다.
 
 ## 호환성 후속 (개발 비차단)
 - Windows Edge와 macOS Safari는 현재 수용 기준에 포함하지 않는다. A17에서 검증한 macOS Tahoe · Chrome 157의 한국어 IME 동작은 해당 이슈의 범위이며, 전체 macOS 호환성 확인을 뜻하지 않는다. 필요가 생기면 별도 호환성 슬라이스로 검증한다.

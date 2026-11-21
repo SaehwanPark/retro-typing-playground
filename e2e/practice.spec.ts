@@ -213,6 +213,43 @@ test("Space submits completed Korean and English practice tasks", async ({ page 
   await expect(page.getByRole("heading", { name: "연습 완료" })).toBeVisible();
 });
 
+test("word practice advances through every word and wraps after the last one", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "[연습] 낱말" }).click();
+  const input = page.getByRole("textbox", { name: "따라 입력하기" });
+  const words: string[] = [];
+  for (let step = 0; step < 8; step += 1) {
+    const prompt = await page.locator("#typing-target").getAttribute("aria-label");
+    expect(prompt).not.toBeNull();
+    words.push(prompt!);
+    await input.fill(prompt!);
+    await input.press("Enter");
+    await expect(page.getByRole("heading", { name: "연습 완료" })).toBeFocused();
+    await expect(page.locator(".result-progress")).toHaveText(`${step + 1} / 8번째 낱말`);
+    await page.keyboard.press("Enter");
+    await expect(input).toBeFocused();
+    await expect(input).toHaveValue("");
+  }
+  expect(new Set(words).size).toBe(8);
+  await expect(page.locator("#typing-target")).toHaveAttribute("aria-label", words[0]!);
+});
+
+test("retrying a word result repeats the word that was just submitted", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "[연습] 낱말" }).click();
+  const input = page.getByRole("textbox", { name: "따라 입력하기" });
+  const first = await page.locator("#typing-target").getAttribute("aria-label");
+  await input.fill(first!);
+  await input.press("Enter");
+  await page.keyboard.press("Enter");
+  const second = await page.locator("#typing-target").getAttribute("aria-label");
+  expect(second).not.toBe(first);
+  await input.fill(second!);
+  await input.press("Enter");
+  await page.getByRole("button", { name: "다시 연습" }).click();
+  await expect(page.locator("#typing-target")).toHaveAttribute("aria-label", second!);
+});
+
 test("arrow navigation selects a language and returns focus to that mode", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "[기타] 환경설정" }).click();

@@ -71,6 +71,8 @@ export type InterfaceText = Readonly<{
   sameModePrevious: string;
   previousResult: string;
   practiceAgain: string;
+  nextWord: string;
+  wordProgress: (index: number, total: number) => string;
   returnTo: (destination: string) => string;
   openPractice: string;
   blockedPracticeInput: string;
@@ -193,6 +195,8 @@ const ko: InterfaceText = {
   sameModePrevious: "같은 모드의 이전 기록",
   previousResult: "이전 결과",
   practiceAgain: "다시 연습",
+  nextWord: "다음 낱말",
+  wordProgress: (index, total) => `${index} / ${total}번째 낱말`,
   returnTo: (destination) => destination === "메뉴" ? "메뉴로 돌아가기" : `${destination}으로 돌아가기`,
   openPractice: "연습으로 돌아가기",
   blockedPracticeInput: "연습 문장은 키보드로 직접 입력하세요.",
@@ -337,6 +341,8 @@ const en: InterfaceText = {
   sameModePrevious: "Previous result in this mode",
   previousResult: "Previous result",
   practiceAgain: "Practice again",
+  nextWord: "Next word",
+  wordProgress: (index, total) => `Word ${index} of ${total}`,
   returnTo: (destination) => `Return to ${destination}`,
   openPractice: "Return to practice",
   blockedPracticeInput: "Type the prompt with your keyboard.",

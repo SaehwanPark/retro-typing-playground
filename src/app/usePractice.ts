@@ -20,6 +20,9 @@ export const freePracticeEntry = { id: "free-practice", label: "연습장", kind
 export const settingsEntry = { id: "settings", label: "환경설정", kind: "settings" } as const;
 export const passageEntries = [shortPassageEntry, longPassageEntry] as const;
 
+/** Position of a word drill inside its word list, kept so the result can offer the next word. */
+export type WordProgress = { index: number; total: number; title: string };
+
 export type PracticeContentState =
   | { screen: "menu"; selected: string | null }
   | { screen: "library"; length: PassageLength; selected: string | null }
@@ -27,17 +30,23 @@ export type PracticeContentState =
   | { screen: "challenge" }
   | { screen: "free-practice" }
   | {
-    screen: "practice";
-    activity: TextActivity;
-    lesson: TextLesson;
-    index: number;
-    round: number;
-    session: PracticeSession;
-    previous: TypingScore | null;
-  }
+      screen: "practice";
+      activity: TextActivity;
+      lesson: TextLesson;
+      index: number;
+      round: number;
+      session: PracticeSession;
+      previous: TypingScore | null;
+    }
   | { screen: "positions"; activity: PositionActivity; session: PositionSession }
   | { screen: "passage"; activity: PassageActivity; session: PassageSession }
-  | { screen: "result"; activity: Activity | PassageActivity; score: TypingScore };
+  | {
+      screen: "result";
+      activity: Activity | PassageActivity;
+      score: TypingScore;
+      // Word drills review one word at a time; other modes finish the whole activity.
+      wordProgress: WordProgress | null;
+    };
 
 export type PracticeState =
   | PracticeContentState
@@ -57,7 +66,20 @@ export type AppAction =
   | ({ type: "position-key"; key: PositionKey } & CompletionTime)
   | { type: "finish" }
   | { type: "return-to-menu" }
+  | { type: "continue" }
   | { type: "retry" };
+
+function startLesson(activity: TextActivity, index: number, round: number): PracticeState {
+  return {
+    screen: "practice",
+    activity,
+    lesson: activity.lessons[index] ?? activity.lessons[0],
+    index,
+    round,
+    session: createPracticeSession(),
+    previous: null,
+  };
+}
 
 function startActivity(activity: Activity | PassageActivity): PracticeState {
   if (activity.kind === "passage") {
@@ -66,15 +88,7 @@ function startActivity(activity: Activity | PassageActivity): PracticeState {
   if (activity.kind === "position") {
     return { screen: "positions", activity, session: createPositionSession() };
   }
-  return {
-    screen: "practice",
-    activity,
-    lesson: activity.lessons[0],
-    index: 0,
-    round: 0,
-    session: createPracticeSession(),
-    previous: null,
-  };
+  return startLesson(activity, 0, 0);
 }
 
 function reduceTextPractice(
@@ -85,7 +99,7 @@ function reduceTextPractice(
     return { ...state, session: reducePracticeSession(state.session, action) };
   }
   if (action.type === "finish" && state.previous) {
-    return { screen: "result", activity: state.activity, score: state.previous };
+    return { screen: "result", activity: state.activity, score: state.previous, wordProgress: null };
   }
   if (action.type !== "submit") return state;
   const session = action.input === undefined
@@ -96,7 +110,13 @@ function reduceTextPractice(
   const completed = reducePracticeSession(session, { type: "submitted", at: action.at });
   const score = calculateTypingScore(state.lesson.text, completed, action.at, state.lesson.language);
   if (state.activity.kind === "word") {
-    return { screen: "result", activity: state.activity, score };
+    // A word drill reviews each word, so the result offers the next word instead of ending the activity.
+    return {
+      screen: "result",
+      activity: state.activity,
+      score,
+      wordProgress: { index: state.index, total: state.activity.lessons.length, title: state.lesson.title },
+    };
   }
   const index = (state.index + 1) % state.activity.lessons.length;
   return {
@@ -121,7 +141,7 @@ function reducePassagePractice(state: Extract<PracticeState, { screen: "passage"
   switch (update.type) {
     case "waiting": return state;
     case "next-line": return { ...state, session: update.session };
-    case "completed": return { screen: "result", activity: state.activity, score: update.score };
+    case "completed": return { screen: "result", activity: state.activity, score: update.score, wordProgress: null };
   }
 }
 
@@ -163,7 +183,20 @@ export function reducePracticeState(state: PracticeState, action: AppAction): Pr
     }
     return { screen: "menu", selected: state.activity.id };
   }
-  if (state.screen === "result" && action.type === "retry") return startActivity(state.activity);
+  if (state.screen === "result") {
+    if (action.type === "retry") {
+      // Retrying a word repeats the word just finished; retrying anything else starts from the beginning.
+      if (state.wordProgress && state.activity.kind === "word") {
+        return startLesson(state.activity, state.wordProgress.index, 0);
+      }
+      return startActivity(state.activity);
+    }
+    if (action.type === "continue" && state.wordProgress && state.activity.kind === "word") {
+      const next = (state.wordProgress.index + 1) % state.wordProgress.total;
+      return startLesson(state.activity, next, 0);
+    }
+    return state;
+  }
   if (state.screen === "practice") return reduceTextPractice(state, action);
   if (state.screen === "passage") return reducePassagePractice(state, action);
 
@@ -172,7 +205,7 @@ export function reducePracticeState(state: PracticeState, action: AppAction): Pr
     if (!target) return state;
     const session = pressPosition(state.session, target, action.key, action.at);
     if (session.correct === state.activity.keys.length) {
-      return { screen: "result", activity: state.activity, score: scorePositions(session, action.at) };
+      return { screen: "result", activity: state.activity, score: scorePositions(session, action.at), wordProgress: null };
     }
     return { ...state, session };
   }

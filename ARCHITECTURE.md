@@ -125,7 +125,7 @@ src/
 - 이벤트: `start`, `input-changed`, `submit`, `position-key`, `retry`, `back`, 설정 열기/닫기 등
 - 부수 효과는 reducer 밖에서 처리합니다. `reduceSessions`가 완료 기록을 큐(`pending`)에 넣고, `useHistory`가 저장한 뒤 `acknowledge`로 큐에서 빼냅니다. 저장에 실패하면 세션 메모리에 남겨 현재 탭에서 결과를 계속 볼 수 있게 합니다.
 
-`reduceTextPractice`는 낱말이면 결과 화면으로, 한 줄이면 다음 문장으로 넘어갑니다. `reducePassagePractice`는 `submitPassageLine`의 결과(`waiting` / `next-line` / `completed`)를 화면 상태로 옮기기만 합니다.
+`reduceTextPractice`는 낱말이면 결과 화면으로 넘기되 진행 위치(`wordProgress`)를 함께 남겨, 결과의 `continue`가 다음 낱말로 이어가고 `retry`는 방금 끝낸 낱말을 반복합니다. 한 줄이면 결과 없이 다음 문장으로 넘어갑니다. `reducePassagePractice`는 `submitPassageLine`의 결과(`waiting` / `next-line` / `completed`)를 화면 상태로 옮기기만 합니다.
 
 ## 저장 계층
 
