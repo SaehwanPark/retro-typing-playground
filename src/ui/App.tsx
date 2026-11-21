@@ -364,7 +364,12 @@ export function App() {
 
       {currentScreen.screen === "result" && (
         <ResultView
-          title={currentScreen.activity.kind === "line" ? copy.previousSentence : copy.activityLabel(currentScreen.activity.id, currentScreen.activity.label)}
+          title={currentScreen.activity.kind === "line" ? copy.previousSentence
+            : currentScreen.wordProgress ? currentScreen.wordProgress.title
+              : copy.activityLabel(currentScreen.activity.id, currentScreen.activity.label)}
+          progress={currentScreen.wordProgress
+            ? copy.wordProgress(currentScreen.wordProgress.index + 1, currentScreen.wordProgress.total)
+            : undefined}
           score={currentScreen.score}
           showSpeed={currentScreen.activity.kind !== "position"}
           language={activityLanguage(currentScreen.activity)}
@@ -373,6 +378,10 @@ export function App() {
           backLabel={currentScreen.activity.kind === "passage"
             ? currentScreen.activity.length === "short" ? copy.shortPassage : copy.longPassage
             : copy.menu}
+          {...(currentScreen.wordProgress ? {
+            continueLabel: copy.nextWord,
+            onContinue: () => dispatch({ type: "continue" }),
+          } : {})}
           onRetry={() => dispatch({ type: "retry" })}
           onBack={back}
           copy={copy}
