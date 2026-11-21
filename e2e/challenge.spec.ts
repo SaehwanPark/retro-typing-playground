@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("challenge can submit, stop, retry, and end automatically", async ({ page }) => {
   await page.clock.install();
   await page.goto("/");
-  const menu = page.getByRole("button", { name: "30초 낱말 도전" });
+  const menu = page.getByRole("button", { name: "[게임] 30초 낱말 도전" });
   await menu.click();
   const start = page.getByRole("button", { name: "도전 시작" });
   await expect(start).toBeFocused();

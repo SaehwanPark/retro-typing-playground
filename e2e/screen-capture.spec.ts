@@ -24,7 +24,7 @@ test("the screen button downloads the current screen as PNG", async ({ page }) =
 
 test("the downloaded PNG uses the active color theme background", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "환경설정" }).click();
+  await page.getByRole("button", { name: "[기타] 환경설정" }).click();
   await page.getByRole("button", { name: /색상 테마/ }).click();
   const expectedBackground = await page.locator(".shell").evaluate((root) => getComputedStyle(root).backgroundColor);
 
@@ -56,7 +56,7 @@ test("the downloaded PNG uses the active color theme background", async ({ page 
 
 test("Ctrl+S downloads the current screen while free practice text remains in the editor", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "연습장" }).click();
+  await page.getByRole("button", { name: "[기타] 연습장" }).click();
   const editor = page.getByRole("textbox", { name: "원하는 내용을 자유롭게 입력하세요" });
   const text = "화면에 보이는 연습장 입력\n둘째 줄";
   await editor.fill(text);
@@ -68,7 +68,7 @@ test("Ctrl+S downloads the current screen while free practice text remains in th
 
 test("Ctrl+S does not intercept a shortcut during IME composition", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "연습장" }).click();
+  await page.getByRole("button", { name: "[기타] 연습장" }).click();
   const editor = page.getByRole("textbox", { name: "원하는 내용을 자유롭게 입력하세요" });
   const wasPrevented = await editor.evaluate((element) => {
     element.dispatchEvent(new CompositionEvent("compositionstart", { bubbles: true }));

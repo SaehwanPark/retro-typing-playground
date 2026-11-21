@@ -7,9 +7,14 @@ import type { PracticeSession, TypingScore } from "./typing";
  * A passage reports speed once per bundle, so the same totals live at two
  * scopes: the whole passage for the final result, and the current bundle for
  * the score shown when its last line is submitted.
+ *
+ * Elapsed time is accumulated per line rather than measured from the first
+ * key of the passage. The pause between submitting a line and pressing the
+ * first key of the next line is transition/reading time; counting it would
+ * make long passages look slower than the same text typed as one-line drills.
  */
 export type PassageProgress = {
-  startedAt: number | null;
+  elapsedMs: number;
   correctCount: number;
   typedCount: number;
   keystrokeCount: number;
@@ -30,7 +35,7 @@ export type PassageAdvance =
   | { type: "completed"; score: TypingScore; bundle: TypingScore };
 
 function createProgress(): PassageProgress {
-  return { startedAt: null, correctCount: 0, typedCount: 0, keystrokeCount: 0 };
+  return { elapsedMs: 0, correctCount: 0, typedCount: 0, keystrokeCount: 0 };
 }
 
 export function createPassageSession(): PassageSession {
@@ -53,29 +58,23 @@ export function endsBundle(nextLineIndex: number, lineCount: number): boolean {
 
 export function updatePassageInput(session: PassageSession, input: string, at: number): PassageSession {
   const line = reducePracticeSession(session.line, { type: "input-changed", input, at });
-  const startedAt = line.startedAt;
-  return {
-    ...session,
-    line,
-    passage: { ...session.passage, startedAt: session.passage.startedAt ?? startedAt },
-    bundle: { ...session.bundle, startedAt: session.bundle.startedAt ?? startedAt },
-  };
+  return { ...session, line };
 }
 
 function addLine(progress: PassageProgress, score: TypingScore): PassageProgress {
   return {
-    startedAt: progress.startedAt,
+    elapsedMs: progress.elapsedMs + (score.elapsedMs ?? 0),
     correctCount: progress.correctCount + score.correctCount,
     typedCount: progress.typedCount + score.typedCount,
     keystrokeCount: progress.keystrokeCount + (score.keystrokeCount ?? 0),
   };
 }
 
-function progressScore(progress: PassageProgress, at: number, language: Language): TypingScore {
+function progressScore(progress: PassageProgress, language: Language): TypingScore {
   return createTypingScore(
     progress.correctCount,
     progress.typedCount,
-    progress.startedAt === null ? null : Math.max(0, at - progress.startedAt),
+    progress.elapsedMs,
     language,
     progress.keystrokeCount,
   );
@@ -117,13 +116,13 @@ export function submitPassageLine(
   if (nextIndex === lines.length) {
     return {
       type: "completed",
-      score: progressScore(passage, at, language),
-      bundle: progressScore(bundle, at, language),
+      score: progressScore(passage, language),
+      bundle: progressScore(bundle, language),
     };
   }
 
   const bundleEnds = endsBundle(nextIndex, lines.length);
-  const finishedBundle = bundleEnds ? progressScore(bundle, at, language) : null;
+  const finishedBundle = bundleEnds ? progressScore(bundle, language) : null;
   return {
     type: "next-line",
     session: {

@@ -19,6 +19,7 @@ import type { Activity, Language } from "../content/lessons";
 import { longPassageEntry, passagesFor, shortPassageEntry } from "../content/passages";
 import type { PassageActivity } from "../content/passages";
 import { interfaceText } from "../content/interfaceText";
+import type { MenuCategory } from "../content/interfaceText";
 import { submissionEndsBundle } from "../domain/passagePractice";
 import { calculateLiveAccuracy, hasReachedEnd } from "../domain/typing";
 import type { PositionKey } from "../domain/positions";
@@ -50,6 +51,12 @@ function activityLanguage(activity: Activity | PassageActivity): Language {
   if (activity.kind === "passage") return activity.language;
   if (activity.kind === "position") return "ko";
   return activity.lessons[0]?.language ?? "ko";
+}
+
+function menuCategory(kind: string): MenuCategory {
+  if (kind === "challenge") return "game";
+  if (kind === "free-practice" || kind === "history" || kind === "settings") return "other";
+  return "practice";
 }
 
 function restoreContentFocus(root: HTMLDivElement | null, state: PracticeState): void {
@@ -225,7 +232,7 @@ export function App() {
     settingsEntry,
   ].map((activity) => ({
     ...activity,
-    label: copy.activityLabel(activity.id, activity.label),
+    label: `[${copy.menuTag(menuCategory(activity.kind))}] ${copy.activityLabel(activity.id, activity.label)}`,
   }));
   const libraryPassages = currentScreen.screen === "library"
     ? passagesFor(practiceLanguage, currentScreen.length)
