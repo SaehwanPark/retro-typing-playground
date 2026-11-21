@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   defaultPracticeFonts,
+  migratePracticeFonts,
   practiceFontKey,
   readPracticeFonts,
   resetPracticeFonts,
@@ -21,11 +22,18 @@ export function usePracticeFont(language: Language) {
   }, [font]);
 
   useEffect(() => {
+    let active = true;
+    void migratePracticeFonts().then(() => {
+      if (active) setStored(readPracticeFonts());
+    });
     function sync(event: StorageEvent) {
       if (event.key === practiceFontKey || event.key === null) setStored(readPracticeFonts());
     }
     window.addEventListener("storage", sync);
-    return () => window.removeEventListener("storage", sync);
+    return () => {
+      active = false;
+      window.removeEventListener("storage", sync);
+    };
   }, []);
 
   async function change(nextFont: PracticeFont, reset = false) {

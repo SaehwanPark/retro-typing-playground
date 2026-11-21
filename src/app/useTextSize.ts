@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { defaultSize, readTextSize, saveTextSize, settingsKey } from "../storage/settingsStorage";
+import { defaultSize, migrateTextSize, readTextSize, saveTextSize, settingsKey } from "../storage/settingsStorage";
 import type { TextSize } from "../storage/settingsStorage";
 
 export function useTextSize() {
@@ -9,11 +9,18 @@ export function useTextSize() {
   const request = useRef(0);
 
   useEffect(() => {
+    let active = true;
+    void migrateTextSize().then(() => {
+      if (active) setStored(readTextSize());
+    });
     function sync(event: StorageEvent) {
       if (event.key === settingsKey || event.key === null) setStored(readTextSize());
     }
     window.addEventListener("storage", sync);
-    return () => window.removeEventListener("storage", sync);
+    return () => {
+      active = false;
+      window.removeEventListener("storage", sync);
+    };
   }, []);
 
   async function change(size: TextSize, reset = false) {

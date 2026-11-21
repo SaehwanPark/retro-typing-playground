@@ -8,7 +8,7 @@ async function expectPngDownload(page: Page, action: () => Promise<void>) {
   const downloadPromise = page.waitForEvent("download");
   await action();
   const download = await downloadPromise;
-  expect(download.suggestedFilename()).toMatch(/^retro-typing-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.png$/);
+  expect(download.suggestedFilename()).toMatch(/^tagak-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}\.png$/);
   const path = await download.path();
   expect(path).not.toBeNull();
   const image = await readFile(path!);

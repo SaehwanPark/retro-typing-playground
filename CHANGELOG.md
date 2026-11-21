@@ -1,17 +1,27 @@
 # CHANGELOG
 
-Retro Typing Playground의 사용자에게 보이는 변경 이력입니다. 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따르고, 버전은 [유의적 버전](https://semver.org/lang/ko/)을 따릅니다.
+타각(Tagak)의 사용자에게 보이는 변경 이력입니다. 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따르고, 버전은 [유의적 버전](https://semver.org/lang/ko/)을 따릅니다.
 
 각 버전은 하나의 기능 슬라이스에 대응합니다. 구현 상태와 완료 조건의 원본은 [docs/SPEC.md](docs/SPEC.md)에 있습니다.
 
-## [Unreleased]
+## [0.0.28] - 2026-11-21
+
+### Changed
+
+- 이슈 [#50](https://github.com/SaehwanPark/tagak/issues/50): 제품명을 타각(Tagak)으로 통일했습니다. 한국어/영어 헤더, 브라우저 제목, README, 핵심 명세와 작업 지침을 갱신하고 PNG 파일 이름을 `tagak-*.png`로 바꿨습니다.
+- 기존 설정 4종과 최근 기록을 `tagak:` 저장 키로 안전하게 이전합니다. 같은 origin에서 새 값이 우선하며, 검증된 복사와 완료 표식 이후에만 구 키를 정리합니다. 손상·충돌·쓰기 실패는 원본을 보존하고, 초기화 뒤 구버전 탭에서 다시 쓴 값을 가져오지 않습니다.
+- npm 패키지 이름을 `tagak`으로 바꿨습니다. 패키지는 계속 private이며 공개 배포를 추가하지 않았습니다.
+
+### Verified
+
+- `npm ci && npm run verify` 통과. 마이그레이션 경계, 한국어/영어 브랜드, 탭 제목, PNG 이름, 기존 설정·기록 흐름을 확인했습니다.
 
 ## [0.0.27] - 2026-11-21
 
 ### Changed
 
-- 이슈 [#44](https://github.com/SaehwanPark/retro-typing-playground/issues/44): `App.tsx`에 섞여 있던 탭/창 복귀 초점 복구와 환경설정 왕복 초점 로직을 `ui/useScreenFocus.ts`로 옮겼습니다. 화면 상태 모델과 렌더링 구조는 그대로 두고, `App`은 화면 조립과 효과음 트리거에 집중합니다.
-- 이슈 [#45](https://github.com/SaehwanPark/retro-typing-playground/issues/45): 여러 E2E 파일에 복제돼 있던 Web Audio 스텁을 `e2e/helpers/audio.ts`로, 설정 주입 코드를 `e2e/helpers/preferences.ts`로 모았습니다. 영어 WPM 검증은 실제 1.1초 대기 대신 `page.clock` 가상 시계를 씁니다.
+- 이슈 [#44](https://github.com/SaehwanPark/tagak/issues/44): `App.tsx`에 섞여 있던 탭/창 복귀 초점 복구와 환경설정 왕복 초점 로직을 `ui/useScreenFocus.ts`로 옮겼습니다. 화면 상태 모델과 렌더링 구조는 그대로 두고, `App`은 화면 조립과 효과음 트리거에 집중합니다.
+- 이슈 [#45](https://github.com/SaehwanPark/tagak/issues/45): 여러 E2E 파일에 복제돼 있던 Web Audio 스텁을 `e2e/helpers/audio.ts`로, 설정 주입 코드를 `e2e/helpers/preferences.ts`로 모았습니다. 영어 WPM 검증은 실제 1.1초 대기 대신 `page.clock` 가상 시계를 씁니다.
 
 ### Unchanged
 
@@ -22,7 +32,7 @@ Retro Typing Playground의 사용자에게 보이는 변경 이력입니다. 형
 
 ### Changed
 
-- 이슈 [#42](https://github.com/SaehwanPark/retro-typing-playground/issues/42): 홈 메뉴의 `[연습]`·`[게임]`·`[기타]` 접두어를 흐린 보조 레이블로 낮췄습니다. 항목 이름이 먼저 읽히고, 포인터나 키보드 초점이 닿은 항목에서만 강조색이 함께 켜집니다.
+- 이슈 [#42](https://github.com/SaehwanPark/tagak/issues/42): 홈 메뉴의 `[연습]`·`[게임]`·`[기타]` 접두어를 흐린 보조 레이블로 낮췄습니다. 항목 이름이 먼저 읽히고, 포인터나 키보드 초점이 닿은 항목에서만 강조색이 함께 켜집니다.
 - 메뉴 항목의 강조색 왼쪽 테두리를 기본적으로 차분한 선으로 두고, 초점·호버에서만 강조색으로 바뀝니다. 반복되는 9개 카드가 동시에 강조색을 띠지 않아 목록이 덜 시끄럽습니다.
 - 점수판은 별도 패널 상자가 아니라 위아래 선으로 구분되는 띠로 바꿔, 제시문·입력 카드와 상자가 겹쳐 보이던 중첩을 줄였습니다.
 - 글 연습의 문맥 목록(`PassageView`)에서 현재 줄은 굵기 대신 제시문 패널의 강조에 맡기고 줄 번호만 강조색으로 표시합니다. 같은 줄이 두 곳에서 이중으로 강조되던 문제를 줄였습니다.
@@ -35,7 +45,7 @@ Retro Typing Playground의 사용자에게 보이는 변경 이력입니다. 형
 
 ### Added
 
-- 이슈 [#43](https://github.com/SaehwanPark/retro-typing-playground/issues/43): 글 고르기처럼 긴 목록에서 `Home`·`End`로 처음·끝 항목에, `PageUp`·`PageDown`으로 여러 항목을 건너뛸 수 있습니다.
+- 이슈 [#43](https://github.com/SaehwanPark/tagak/issues/43): 글 고르기처럼 긴 목록에서 `Home`·`End`로 처음·끝 항목에, `PageUp`·`PageDown`으로 여러 항목을 건너뛸 수 있습니다.
 
 ### Changed
 
@@ -50,7 +60,7 @@ Retro Typing Playground의 사용자에게 보이는 변경 이력입니다. 형
 
 ### Fixed
 
-- 이슈 [#41](https://github.com/SaehwanPark/retro-typing-playground/issues/41): `낱말` 연습이 목록의 첫 낱말만 반복하던 문제를 고쳤습니다. 결과 화면에서 `Enter`나 ‘다음 낱말’ 버튼으로 다음 낱말에 이어서 도전하고, 마지막 낱말 뒤에는 첫 낱말로 돌아옵니다. ‘다시 연습’은 방금 끝낸 낱말을 반복합니다.
+- 이슈 [#41](https://github.com/SaehwanPark/tagak/issues/41): `낱말` 연습이 목록의 첫 낱말만 반복하던 문제를 고쳤습니다. 결과 화면에서 `Enter`나 ‘다음 낱말’ 버튼으로 다음 낱말에 이어서 도전하고, 마지막 낱말 뒤에는 첫 낱말로 돌아옵니다. ‘다시 연습’은 방금 끝낸 낱말을 반복합니다.
 - 낱말 결과 화면에 `3 / 8번째 낱말`처럼 현재 위치를 표시하고, 제목을 연습 종류가 아닌 그 낱말로 보여줍니다.
 
 ## [0.0.23] - 2026-11-20
@@ -67,7 +77,7 @@ Retro Typing Playground의 사용자에게 보이는 변경 이력입니다. 형
 
 ### Fixed
 
-- 이슈 [#39](https://github.com/SaehwanPark/retro-typing-playground/issues/39): 짧은 글·긴 글의 속도가 줄 전환 대기 시간 때문에 한 줄 연습보다 낮게 나오던 문제.
+- 이슈 [#39](https://github.com/SaehwanPark/tagak/issues/39): 짧은 글·긴 글의 속도가 줄 전환 대기 시간 때문에 한 줄 연습보다 낮게 나오던 문제.
 
 ## [0.0.22] - 2026-11-20
 
@@ -79,7 +89,7 @@ Retro Typing Playground의 사용자에게 보이는 변경 이력입니다. 형
 
 ### Fixed
 
-- 이슈 [#36](https://github.com/SaehwanPark/retro-typing-playground/issues/36): 완료 효과음이 장문에서 연습 단위보다 자주 울리던 문제.
+- 이슈 [#36](https://github.com/SaehwanPark/tagak/issues/36): 완료 효과음이 장문에서 연습 단위보다 자주 울리던 문제.
 
 ## [0.0.21] - 2026-11-19
 
@@ -134,14 +144,14 @@ Retro Typing Playground의 사용자에게 보이는 변경 이력입니다. 형
 
 ### Fixed
 
-- 이슈 [#26](https://github.com/SaehwanPark/retro-typing-playground/issues/26): 다른 탭이나 창에서 돌아올 때 마지막으로 사용한 유효한 컨트롤로 초점이 돌아오지 않던 문제.
+- 이슈 [#26](https://github.com/SaehwanPark/tagak/issues/26): 다른 탭이나 창에서 돌아올 때 마지막으로 사용한 유효한 컨트롤로 초점이 돌아오지 않던 문제.
 
 ## [0.0.16] - 2026-11-18
 
 ### Fixed
 
-- 이슈 [#23](https://github.com/SaehwanPark/retro-typing-playground/issues/23): macOS Chrome의 2-Set Korean 입력기에서 조합 중 `Space`를 누르면 공백이 두 칸 남던 문제. 실제 입력기에서 공백 1칸 삽입과 단일 단계 이동을 확인했습니다.
-- 이슈 [#24](https://github.com/SaehwanPark/retro-typing-playground/issues/24): 연습 화면 상단의 환경설정·화면 저장 버튼 위쪽 기준선을 맞췄습니다.
+- 이슈 [#23](https://github.com/SaehwanPark/tagak/issues/23): macOS Chrome의 2-Set Korean 입력기에서 조합 중 `Space`를 누르면 공백이 두 칸 남던 문제. 실제 입력기에서 공백 1칸 삽입과 단일 단계 이동을 확인했습니다.
+- 이슈 [#24](https://github.com/SaehwanPark/tagak/issues/24): 연습 화면 상단의 환경설정·화면 저장 버튼 위쪽 기준선을 맞췄습니다.
 
 ## [0.0.15] - 2026-11-18
 

@@ -1,6 +1,6 @@
 ---
 name: typing-slice-workflow
-description: Retro Typing Playground에서 사용자 기능 슬라이스를 선택하고 Draft PR부터 main 머지와 브랜치 정리까지 진행한다.
+description: 타각(Tagak)에서 사용자 기능 슬라이스를 선택하고 Draft PR부터 main 머지와 브랜치 정리까지 진행한다.
 ---
 
 # 기능 슬라이스 진행

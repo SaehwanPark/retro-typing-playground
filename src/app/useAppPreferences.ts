@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   appPreferencesKey,
   defaultAppPreferences,
+  migrateAppPreferences,
   readAppPreferences,
   saveAppPreferences,
 } from "../storage/appPreferences";
@@ -15,6 +16,11 @@ export function useAppPreferences() {
   const preferences = temporary ?? stored.value;
 
   useEffect(() => {
+    let active = true;
+    const initialRequest = request.current;
+    void migrateAppPreferences().then(() => {
+      if (active && request.current === initialRequest) setStored(readAppPreferences());
+    });
     function sync(event: StorageEvent) {
       if (event.key === appPreferencesKey || event.key === null) {
         setStored(readAppPreferences());
@@ -23,7 +29,10 @@ export function useAppPreferences() {
       }
     }
     window.addEventListener("storage", sync);
-    return () => window.removeEventListener("storage", sync);
+    return () => {
+      active = false;
+      window.removeEventListener("storage", sync);
+    };
   }, []);
 
   async function change(update: Partial<AppPreferences>, reset = false) {

@@ -32,5 +32,5 @@ function captureFilename(date: Date): string {
     part(date.getMinutes()),
     part(date.getSeconds()),
   ].join("-");
-  return `retro-typing-${stamp}.png`;
+  return `tagak-${stamp}.png`;
 }
