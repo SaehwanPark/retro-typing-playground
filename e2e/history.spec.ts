@@ -40,6 +40,33 @@ test("simultaneous completions persist across tabs and can be compared and clear
   await expect(other.getByText("표시할 연습 기록이 없습니다.")).toBeVisible();
 });
 
+test("history clear confirmation starts on Cancel and restores the clear button", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "[연습] 낱말", exact: true }).click();
+  const input = page.getByRole("textbox", { name: "따라 입력하기" });
+  await input.fill("연필");
+  await input.press("Enter");
+  await page.getByRole("button", { name: "메뉴로 돌아가기" }).click();
+  await page.getByRole("button", { name: "[기타] 최근 연습 기록" }).click();
+
+  const clearButton = page.getByRole("button", { name: "기록 지우기", exact: true });
+  await clearButton.click();
+  const cancel = page.getByRole("button", { name: "취소" });
+  await expect(cancel).toBeFocused();
+  await expect(page.getByRole("alertdialog")).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("alertdialog")).toHaveCount(0);
+  await expect(clearButton).toBeFocused();
+  await expect(page.getByRole("listitem")).toHaveCount(1);
+
+  await clearButton.click();
+  await expect(cancel).toBeFocused();
+  await cancel.click();
+  await expect(clearButton).toBeFocused();
+  await expect(page.getByRole("listitem")).toHaveCount(1);
+});
+
 test("unreadable data is preserved and a session still completes", async ({ page }) => {
   await page.goto("/");
   await page.evaluate((key) => localStorage.setItem(key, "unreadable"), historyKey);

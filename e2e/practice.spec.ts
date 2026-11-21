@@ -250,6 +250,30 @@ test("retrying a word result repeats the word that was just submitted", async ({
   await expect(page.locator("#typing-target")).toHaveAttribute("aria-label", second!);
 });
 
+test("Home, End, and Page Down jump between menu entries and keep the roving focus", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "[연습] 짧은 글", exact: true }).click();
+  const entries = page.locator(".activity-menu button");
+  const count = await entries.count();
+  expect(count).toBeGreaterThan(6);
+  await expect(entries.first()).toBeFocused();
+
+  await page.keyboard.press("End");
+  await expect(entries.nth(count - 1)).toBeFocused();
+  await page.keyboard.press("Home");
+  await expect(entries.first()).toBeFocused();
+
+  await page.keyboard.press("PageDown");
+  await expect(entries.nth(Math.min(5, count - 1))).toBeFocused();
+  await page.keyboard.press("PageUp");
+  await expect(entries.first()).toBeFocused();
+  await page.keyboard.press("ArrowUp");
+  await expect(entries.nth(count - 1)).toBeFocused();
+
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "[연습] 짧은 글", exact: true })).toBeFocused();
+});
+
 test("arrow navigation selects a language and returns focus to that mode", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "[기타] 환경설정" }).click();

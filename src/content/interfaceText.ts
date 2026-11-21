@@ -29,18 +29,18 @@ export type InterfaceText = Readonly<{
   korean: string;
   english: string;
   practiceSize: string;
+  resetSize: string;
   standardSize: string;
   largeSize: string;
   largestSize: string;
-  resetSize: string;
   colorTheme: string;
+  resetTheme: string;
   terminalTheme: string;
   paperTheme: string;
-  resetTheme: string;
   practiceFont: string;
+  resetFont: string;
   gothicFont: string;
   serifFont: string;
-  resetFont: string;
   completionSound: string;
   completionSoundHelp: string;
   soundOn: string;
@@ -55,6 +55,7 @@ export type InterfaceText = Readonly<{
   longPassage: string;
   choosePractice: string;
   select: string;
+  firstLast: string;
   currentPrompt: string;
   followAlong: string;
   submit: string;
@@ -153,18 +154,18 @@ const ko: InterfaceText = {
   korean: "한국어",
   english: "영어",
   practiceSize: "연습 글자 크기",
+  resetSize: "기본 크기로 되돌리기",
   standardSize: "기본",
   largeSize: "크게",
   largestSize: "아주 크게",
-  resetSize: "기본 크기로 되돌리기",
   colorTheme: "색상 테마",
+  resetTheme: "기본 색상으로 되돌리기",
   terminalTheme: "터미널 야간",
   paperTheme: "종이 밝음",
-  resetTheme: "기본 색상으로 되돌리기",
   practiceFont: "연습 글꼴",
+  resetFont: "기본 글꼴로 되돌리기",
   gothicFont: "고딕",
   serifFont: "명조",
-  resetFont: "기본 글꼴로 되돌리기",
   completionSound: "완료 효과음",
   completionSoundHelp: "한 연습을 마칠 때 한 번 재생합니다. 입력 중에는 소리가 나지 않습니다.",
   soundOn: "켬",
@@ -179,6 +180,7 @@ const ko: InterfaceText = {
   longPassage: "긴 글",
   choosePractice: "연습 종류 고르기",
   select: "선택",
+  firstLast: "처음/끝",
   currentPrompt: "제시문",
   followAlong: "따라 입력하기",
   submit: "제출",
@@ -299,18 +301,18 @@ const en: InterfaceText = {
   korean: "Korean",
   english: "English",
   practiceSize: "Practice text size",
+  resetSize: "Reset text size",
   standardSize: "Standard",
   largeSize: "Large",
   largestSize: "Largest",
-  resetSize: "Reset text size",
   colorTheme: "Color theme",
+  resetTheme: "Reset color theme",
   terminalTheme: "Terminal night",
   paperTheme: "Paper light",
-  resetTheme: "Reset color theme",
   practiceFont: "Practice font",
+  resetFont: "Reset practice font",
   gothicFont: "Sans-serif",
   serifFont: "Serif",
-  resetFont: "Reset practice font",
   completionSound: "Completion sound",
   completionSoundHelp: "Plays once when a practice item is submitted, never while typing.",
   soundOn: "On",
@@ -325,6 +327,7 @@ const en: InterfaceText = {
   longPassage: "Long passages",
   choosePractice: "Choose practice",
   select: "Select",
+  firstLast: "First/Last",
   currentPrompt: "Prompt",
   followAlong: "Type the prompt",
   submit: "Submit",
