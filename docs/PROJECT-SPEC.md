@@ -1,6 +1,8 @@
-# Retro Typing Playground 프로젝트 명세
+# 타각(Tagak) 프로젝트 명세
 
-한메타자교실을 기억하는 사람과 한글 타자를 처음 배우는 사람이, 현재 데스크톱 브라우저에서 키보드만으로 연습을 시작하고 결과를 확인할 수 있는 로컬 타자 연습 앱을 만든다. 구현 순서와 현재 상태는 [SPEC.md](SPEC.md), 개발자용 구조 설명은 [ARCHITECTURE.md](../ARCHITECTURE.md), 버전별 변경 이력은 [CHANGELOG.md](../CHANGELOG.md)에서 확인한다.
+타각(Tagak)은 한메타자교실의 연습 경험을 오늘날에 맞게 재해석한 로컬 타자 연습 앱이다. 한글 우선·키보드 중심으로 자리, 낱말, 한 줄, 짧은 글과 긴 글을 오프라인에서 연습한다. 구현 순서와 현재 상태는 [SPEC.md](SPEC.md), 개발자용 구조 설명은 [ARCHITECTURE.md](../ARCHITECTURE.md), 버전별 변경 이력은 [CHANGELOG.md](../CHANGELOG.md)에서 확인한다.
+
+제품 이름은 한국어 `타각`, 영어 `Tagak`으로 쓴다. 브라우저 제목은 `타각 — Tagak`, 한 줄 소개는 한국어 UI에서 `키보드 중심의 로컬 타자 연습 프로그램`, 영어 UI에서 `A keyboard-first, local typing practice app.`이다. 프로젝트 고유명사로 `Retro Typing Playground`를 사용하지 않으며, 일반적인 `타자 연습`과 디자인 배경을 설명하는 `레트로`는 그대로 쓸 수 있다.
 
 ## 참조 경험과 제품 범위
 
