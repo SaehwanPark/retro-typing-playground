@@ -3,6 +3,9 @@ import type { KeyboardEvent } from "react";
 import type { InterfaceText } from "../content/interfaceText";
 type MenuEntry = { id: string; label: string; detail?: string; creditLabel?: string };
 
+// PageUp/PageDown move about one screenful of menu rows, matching the visible list height.
+const pageSize = 5;
+
 type ActivityMenuProps<Entry extends MenuEntry> = {
   activities: readonly Entry[];
   title: string;
@@ -25,13 +28,19 @@ export function ActivityMenu<Entry extends MenuEntry>({
 
   function moveFocus(event: KeyboardEvent<HTMLDivElement>) {
     if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+    const keys = ["ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"];
+    if (!keys.includes(event.key)) return;
     const buttons = Array.from(event.currentTarget.querySelectorAll("button"));
     const current = buttons.findIndex((button) => button === event.target);
     if (current < 0) return;
     event.preventDefault();
-    const step = event.key === "ArrowDown" ? 1 : -1;
-    buttons[(current + step + buttons.length) % buttons.length]?.focus();
+    // Home/End jump to the list edges; PageUp/PageDown move a screenful of entries at once.
+    const step = event.key === "ArrowDown" || event.key === "PageDown" ? 1 : -1;
+    const distance = event.key === "PageUp" || event.key === "PageDown" ? pageSize : 1;
+    const nextIndex = event.key === "Home" ? 0
+      : event.key === "End" ? buttons.length - 1
+        : (current + step * distance + buttons.length) % buttons.length;
+    buttons[nextIndex]?.focus();
   }
 
   return (
@@ -58,7 +67,7 @@ export function ActivityMenu<Entry extends MenuEntry>({
           </button>
         ))}
       </div>
-      <p className="keys"><kbd>↑</kbd> <kbd>↓</kbd> {copy.select} <kbd>Enter</kbd> {copy.start}</p>
+      <p className="keys"><kbd>↑</kbd> <kbd>↓</kbd> {copy.select} <kbd>Home</kbd> <kbd>End</kbd> {copy.firstLast} <kbd>Enter</kbd> {copy.start}</p>
     </section>
   );
 }

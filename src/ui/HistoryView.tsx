@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { modeLabels } from "../domain/history";
 import type { PracticeRecord, RecordedMode } from "../domain/history";
 import { useFocus } from "./useFocus";
@@ -24,7 +24,14 @@ export function HistoryView({ records, onClear, onBack, copy, interfaceLanguage,
   const [filter, setFilter] = useState<RecordedMode | "all">("all");
   const [confirming, setConfirming] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const cancelButton = useRef<HTMLButtonElement>(null);
+  const confirmTrigger = useRef<HTMLButtonElement>(null);
   const visible = records.filter((record) => filter === "all" || record.mode === filter);
+
+  // The confirmation opens on Cancel so a stray Enter or Esc cannot erase the records.
+  useEffect(() => {
+    if (confirming) cancelButton.current?.focus();
+  }, [confirming]);
 
   async function clear() {
     setClearing(true);
@@ -32,13 +39,17 @@ export function HistoryView({ records, onClear, onBack, copy, interfaceLanguage,
     setClearing(false);
   }
 
+  function dismissConfirm() {
+    setConfirming(false);
+    confirmTrigger.current?.focus();
+  }
+
   return (
     <section className="screen" onKeyDown={(event) => {
       if (event.key !== "Escape" || event.nativeEvent.isComposing ||
           event.target instanceof HTMLSelectElement) return;
       if (confirming) {
-        setConfirming(false);
-        title.current?.focus();
+        dismissConfirm();
       } else {
         onBack();
       }
@@ -52,14 +63,30 @@ export function HistoryView({ records, onClear, onBack, copy, interfaceLanguage,
             {Object.keys(modeLabels).map((mode) => <option value={mode} key={mode}>{copy.modeLabel(mode)}</option>)}
           </select>
         </label>
-        <button type="button" className="button secondary" onClick={() => setConfirming(true)}>{copy.clearHistory}</button>
+        <button
+          ref={confirmTrigger}
+          type="button"
+          className="button secondary"
+          // Opening the confirmation moves focus to Cancel so an accidental Enter cannot delete.
+          onClick={() => setConfirming(true)}
+        >
+          {copy.clearHistory}
+        </button>
       </div>
       {confirming && (
-        <div className="target" aria-label={copy.clearHistory}>
-          <p>{copy.confirmClearHistory}</p>
+        <div className="target" role="alertdialog" aria-label={copy.clearHistory} aria-describedby="clear-history-question">
+          <p id="clear-history-question">{copy.confirmClearHistory}</p>
           <div className="result-actions">
+            <button
+              ref={cancelButton}
+              type="button"
+              className="button secondary"
+              disabled={clearing}
+              onClick={dismissConfirm}
+            >
+              {copy.cancel}
+            </button>
             <button type="button" className="button" disabled={clearing} onClick={() => void clear()}>{copy.clearAllHistory}</button>
-            <button type="button" className="button secondary" disabled={clearing} onClick={() => setConfirming(false)}>{copy.cancel}</button>
           </div>
         </div>
       )}

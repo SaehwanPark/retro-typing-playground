@@ -1,6 +1,6 @@
 # SPEC
 
-현재 버전은 `v0.0.24`이다. 제품의 동작과 기술 결정은 [프로젝트 명세](PROJECT-SPEC.md)를 따른다. 사용자 안내는 [README](../README.md), 구조는 [ARCHITECTURE](../ARCHITECTURE.md), 버전별 변경은 [CHANGELOG](../CHANGELOG.md)에 있다.
+현재 버전은 `v0.0.25`이다. 제품의 동작과 기술 결정은 [프로젝트 명세](PROJECT-SPEC.md)를 따른다. 사용자 안내는 [README](../README.md), 구조는 [ARCHITECTURE](../ARCHITECTURE.md), 버전별 변경은 [CHANGELOG](../CHANGELOG.md)에 있다.
 
 ## 상태 표시
 
@@ -139,6 +139,12 @@
   - 진행 정책은 낱말마다 결과를 보여주는 기존 제품 의도를 유지하는 것이며, 한 줄 연습처럼 결과 화면 없이 이어가지 않는다. 결과 화면에는 `3 / 8번째 낱말` 형태의 위치를 표시하고 제목을 그 낱말로 보여준다. 조작은 키보드만으로 가능하며 결과에서 다음 낱말로 넘어가면 입력창 초점이 유지된다.
   - 기존 `reduceTextPractice`의 작은 수정으로 처리하고 새 추상화나 모드는 도입하지 않았다. `continue` 이벤트를 추가하고 `result` 상태에 `wordProgress`를 두었다.
   - `npm run verify` 통과: Vitest 10개 파일 38개 테스트, 프로덕션 빌드, Playwright E2E 39개. 첫 낱말 → 다음 낱말 → 마지막 낱말 → 첫 낱말 순환, 방금 끝낸 낱말 재시도, 결과 위치 표시, 키보드 이어가기를 확인했다. Windows 11 + Chrome 수동 확인은 이 변경에서 수행하지 않았다.
+
+- [x] **A26 · 키보드 탐색 마찰 줄이기** · `v0.0.25`
+  - 이슈 [#43](https://github.com/SaehwanPark/retro-typing-playground/issues/43): 홈 메뉴와 글 고르기·기록 같은 목록에서 `Home`·`End`로 처음·끝 항목에 바로 이동하고, `PageUp`·`PageDown`으로 5개씩 건너뛴다. 기존 ↑/↓ 순환, Enter 선택, Esc 복귀, 선택 항목 초점 복원은 유지한다.
+  - 기록 지우기 확인이 열리면 초점을 ‘취소’에 두고, `Esc`·취소로 닫으면 원래 기록 지우기 버튼으로 복귀한다. 확인 영역은 `alertdialog`로 알린다. 마우스 조작은 그대로 동작한다.
+  - 검토 후 바꾸지 않은 항목: 글자 크기·테마·글꼴의 개별 초기화 행은 현재 저장값을 지우는 유일한 경로라 유지했다. 비활성 설정 항목은 이미 방향키 탐색에서 제외된다. 결과 화면의 CPM/WPM 도움말은 환경설정의 속도 단위 설명으로 충분해 추가하지 않았다.
+  - `npm run verify` 통과: Vitest 10개 파일 38개 테스트, 프로덕션 빌드, Playwright E2E 41개. 처음·끝·여러 항목 이동과 순환 유지, 기록 삭제 확인의 초점 진입·복귀를 확인했다. Windows 11 + Chrome 수동 확인은 이 변경에서 수행하지 않았다.
 
 ## 호환성 후속 (개발 비차단)
 - Windows Edge와 macOS Safari는 현재 수용 기준에 포함하지 않는다. A17에서 검증한 macOS Tahoe · Chrome 157의 한국어 IME 동작은 해당 이슈의 범위이며, 전체 macOS 호환성 확인을 뜻하지 않는다. 필요가 생기면 별도 호환성 슬라이스로 검증한다.
