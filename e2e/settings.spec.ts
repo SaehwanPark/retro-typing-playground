@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { appPreferencesKey } from "../src/storage/appPreferences";
+import { seedPreferences } from "./helpers/preferences";
+import { stubCompletionTone } from "./helpers/audio";
 import { historyKey } from "../src/storage/historyStorage";
 
 test("settings are reachable by keyboard and return focus to the home entry", async ({ page }) => {
@@ -69,12 +71,11 @@ test("speed units have language-specific defaults and save independently", async
 });
 
 test("A12 preferences migrate and English WPM stays consistent in results and history", async ({ page }) => {
-  await page.addInitScript((key) => {
-    localStorage.setItem(key, JSON.stringify({
-      version: 1,
-      preferences: { interfaceLanguage: "en", practiceLanguage: "en", completionSound: false },
-    }));
-  }, appPreferencesKey);
+  await seedPreferences(page, {
+    interfaceLanguage: "en", practiceLanguage: "en", completionSound: false,
+  }, 1);
+  // Virtual time keeps the speed comparison deterministic instead of waiting 1.1 real seconds per word.
+  await page.clock.install();
   await page.goto("/");
   await page.getByRole("button", { name: "[Other] Settings" }).click();
   const koreanUnit = page.getByRole("button", { name: /Korean speed unit/ });
@@ -90,7 +91,7 @@ test("A12 preferences migrate and English WPM stays consistent in results and hi
     const prompt = await page.locator("#typing-target").getAttribute("aria-label");
     expect(prompt).not.toBeNull();
     await input.fill(prompt!);
-    await page.waitForTimeout(1_100);
+    await page.clock.fastForward(1_200);
     await input.press("Enter");
     await expect(page.getByRole("heading", { name: "Practice complete" })).toBeVisible();
     const result = page.locator('dl[aria-label="This result"]');
@@ -120,36 +121,11 @@ test("A12 preferences migrate and English WPM stays consistent in results and hi
 });
 
 test("completion sound plays only after submitting a practice item", async ({ page }) => {
-  await page.addInitScript((key) => {
-    localStorage.setItem(key, JSON.stringify({
-      version: 1,
-      preferences: { interfaceLanguage: "ko", practiceLanguage: "ko", completionSound: true },
-    }));
-    const target = window as typeof window & { __toneStarts?: number };
-    target.__toneStarts = 0;
-    class AudioContextMock {
-      currentTime = 0;
-      destination = {};
-      createOscillator() {
-        return {
-          type: "sine",
-          frequency: { setValueAtTime() {} },
-          connect() {},
-          start() { target.__toneStarts = (target.__toneStarts ?? 0) + 1; },
-          stop() {},
-          onended: null as (() => void) | null,
-        };
-      }
-      createGain() {
-        return {
-          gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} },
-          connect() {},
-        };
-      }
-      close() { return Promise.resolve(); }
-    }
-    Object.defineProperty(window, "AudioContext", { configurable: true, value: AudioContextMock });
-  }, appPreferencesKey);
+  // v1 is still readable; the sound flag survives that migration.
+  await seedPreferences(page, {
+    interfaceLanguage: "ko", practiceLanguage: "ko", completionSound: true,
+  }, 1);
+  const tones = await stubCompletionTone(page);
   await page.goto("/");
   await page.getByRole("button", { name: "[연습] 한 줄", exact: true }).click();
   const input = page.getByRole("textbox", { name: "따라 입력하기" });
@@ -157,9 +133,9 @@ test("completion sound plays only after submitting a practice item", async ({ pa
   expect(prompt).not.toBeNull();
 
   await input.fill(prompt!.slice(0, 1));
-  await expect.poll(() => page.evaluate(() => (window as typeof window & { __toneStarts?: number }).__toneStarts)).toBe(0);
+  await expect.poll(tones).toBe(0);
   await input.fill(prompt!);
-  await expect.poll(() => page.evaluate(() => (window as typeof window & { __toneStarts?: number }).__toneStarts)).toBe(0);
+  await expect.poll(tones).toBe(0);
   await input.press("Enter");
-  await expect.poll(() => page.evaluate(() => (window as typeof window & { __toneStarts?: number }).__toneStarts)).toBe(1);
+  await expect.poll(tones).toBe(1);
 });

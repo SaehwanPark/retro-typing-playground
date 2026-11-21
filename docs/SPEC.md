@@ -1,6 +1,6 @@
 # SPEC
 
-현재 버전은 `v0.0.26`이다. 제품의 동작과 기술 결정은 [프로젝트 명세](PROJECT-SPEC.md)를 따른다. 사용자 안내는 [README](../README.md), 구조는 [ARCHITECTURE](../ARCHITECTURE.md), 버전별 변경은 [CHANGELOG](../CHANGELOG.md)에 있다.
+현재 버전은 `v0.0.27`이다. 제품의 동작과 기술 결정은 [프로젝트 명세](PROJECT-SPEC.md)를 따른다. 사용자 안내는 [README](../README.md), 구조는 [ARCHITECTURE](../ARCHITECTURE.md), 버전별 변경은 [CHANGELOG](../CHANGELOG.md)에 있다.
 
 ## 상태 표시
 
@@ -152,6 +152,13 @@
   - 글 연습 문맥 목록의 현재 줄은 굵기 대신 줄 번호만 강조색으로 표시해, 제시문 패널과 이중 강조되지 않게 했다.
   - 채택하지 않은 변경: 태그를 완전히 제거하는 안은 종류 구분 정보를 잃어 보류했다. 테마 색·키보드 조작·정확/오타의 색+밑줄 구분·글자 크기는 그대로 두었다.
   - `npm run verify` 통과: Vitest 10개 파일 38개 테스트, 프로덕션 빌드, Playwright E2E 41개. 두 테마와 기본·아주 크게 글자 크기에서 메뉴·글 고르기·연습 화면을 스크린샷으로 비교해 레이아웃 유지와 접근 가능한 이름(`[연습] 짧은 글` 등) 불변을 확인했다. Windows 11 + Chrome 수동 확인은 이 변경에서 수행하지 않았다.
+
+- [x] **A28 · UI 초점 오케스트레이션 분리와 테스트 유지비 정리** · `v0.0.27`
+  - 이슈 [#44](https://github.com/SaehwanPark/retro-typing-playground/issues/44): `App.tsx`의 탭·창 복귀 초점 복구와 환경설정 왕복 초점 로직을 `ui/useScreenFocus.ts`로 추출했다. `contentState`(환경설정 래퍼에서 실제 화면 추출)도 이 모듈로 옮겨 초점 규칙과 화면 조립이 분리됐다. 화면 상태 모델·렌더링 구조는 유지했다.
+  - 설정 훅 중복(후보 2)은 검토 후 보류했다. 단일 값 설정과 언어별 글꼴, 복합 preferences는 저장 단위와 실패 처리 의미가 달라 generic hook으로 합치면 오히려 읽기 어려워진다. 다중 탭 설정은 현재 마지막 쓰기 우선이며 이 동작을 그대로 허용한다.
+  - 이슈 [#45](https://github.com/SaehwanPark/retro-typing-playground/issues/45): E2E에 반복되던 Web Audio 스텁을 `e2e/helpers/audio.ts`(`stubCompletionTone`)로, 설정 주입을 `e2e/helpers/preferences.ts`(`seedPreferences`)로 정리했다. `settings.spec.ts`의 실제 1.1초 대기는 `page.clock` 가상 시계로 바꿨다.
+  - 유지한 검증: 실제 IME와 구분한 합성 IME 이벤트 순서, 한국어 문자소·두벌식 타수·속도 계산, 여러 탭 동시 기록 저장과 실패 보존, 구버전 마이그레이션, 5줄 묶음 및 완료 효과음 경계, CSS 글꼴 계약, `TEXT-LICENSES.md` 일치 검증은 줄이거나 약화하지 않았다.
+  - `npm run verify` 통과: Vitest 10개 파일 38개 테스트, 프로덕션 빌드, Playwright E2E 41개. 초점 복구·환경설정 왕복·기록 흐름 회귀와 가상 시계 기반 WPM 검증을 확인했다. Windows 11 + Chrome 수동 확인은 이 변경에서 수행하지 않았다.
 
 ## 호환성 후속 (개발 비차단)
 - Windows Edge와 macOS Safari는 현재 수용 기준에 포함하지 않는다. A17에서 검증한 macOS Tahoe · Chrome 157의 한국어 IME 동작은 해당 이슈의 범위이며, 전체 macOS 호환성 확인을 뜻하지 않는다. 필요가 생기면 별도 호환성 슬라이스로 검증한다.

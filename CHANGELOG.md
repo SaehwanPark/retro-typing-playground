@@ -6,6 +6,18 @@ Retro Typing Playground의 사용자에게 보이는 변경 이력입니다. 형
 
 ## [Unreleased]
 
+## [0.0.27] - 2026-11-21
+
+### Changed
+
+- 이슈 [#44](https://github.com/SaehwanPark/retro-typing-playground/issues/44): `App.tsx`에 섞여 있던 탭/창 복귀 초점 복구와 환경설정 왕복 초점 로직을 `ui/useScreenFocus.ts`로 옮겼습니다. 화면 상태 모델과 렌더링 구조는 그대로 두고, `App`은 화면 조립과 효과음 트리거에 집중합니다.
+- 이슈 [#45](https://github.com/SaehwanPark/retro-typing-playground/issues/45): 여러 E2E 파일에 복제돼 있던 Web Audio 스텁을 `e2e/helpers/audio.ts`로, 설정 주입 코드를 `e2e/helpers/preferences.ts`로 모았습니다. 영어 WPM 검증은 실제 1.1초 대기 대신 `page.clock` 가상 시계를 씁니다.
+
+### Unchanged
+
+- 설정 훅(`useTextSize`·`useColorTheme`·`usePracticeFont`·`useAppPreferences`)은 값의 의미와 저장 요구가 서로 달라 공통 generic hook으로 합치지 않았습니다. 개별 초기화 행도 저장값을 지우는 유일한 경로라 유지합니다.
+- IME 어댑터, 채점 도메인, 기록 저장 트랜잭션, CSS 글꼴/픽셀 계약 검증은 손대지 않았습니다.
+
 ## [0.0.26] - 2026-11-21
 
 ### Changed
