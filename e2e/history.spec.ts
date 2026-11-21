@@ -4,7 +4,7 @@ import { historyKey } from "../src/storage/historyStorage";
 
 async function finishWord(page: Page, mode: string, word: string) {
   await page.goto("/");
-  await page.getByRole("button", { name: mode, exact: true }).click();
+  await page.getByRole("button", { name: `[연습] ${mode}`, exact: true }).click();
   const input = page.getByRole("textbox", { name: "따라 입력하기" });
   await input.fill(word);
   await input.press("Enter");

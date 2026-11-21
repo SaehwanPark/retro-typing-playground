@@ -4,7 +4,7 @@ import { colorThemeKey, practiceFontKey, settingsKey } from "../src/storage/sett
 import { appPreferencesKey } from "../src/storage/appPreferences";
 
 async function openSettings(page: Page) {
-  await page.getByRole("button", { name: "[기타] 환경설정" }).click();
+  await page.getByRole("button", { name: /환경설정$/ }).click();
 }
 
 async function closeSettings(page: Page) {
@@ -16,7 +16,7 @@ test("text size changes from settings, survives reload, and can be reset", async
   await page.getByRole("button", { name: "[연습] 한 줄", exact: true }).click();
   const input = page.getByRole("textbox", { name: "따라 입력하기" });
   await input.fill("한글");
-  await page.getByRole("button", { name: "[기타] 환경설정" }).click();
+  await openSettings(page);
   await expect(page.getByRole("button", { name: /연습 언어/ })).toBeDisabled();
   await page.getByRole("button", { name: /연습 글자 크기/ }).click();
   await page.getByRole("button", { name: /연습 글자 크기/ }).click();
@@ -86,7 +86,7 @@ test("a saved font from the earlier shared setting is retained for both language
   }, practiceFontKey);
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("data-practice-font", "serif");
-  await page.getByRole("button", { name: "[기타] 환경설정" }).click();
+  await openSettings(page);
   await page.getByRole("button", { name: /연습 언어/ }).click();
   await expect(page.locator("html")).toHaveAttribute("data-practice-font", "serif");
 });

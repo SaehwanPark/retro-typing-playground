@@ -40,6 +40,7 @@ src/
 │   ├── lessons.ts          # 낱말·한 줄 자료 타입과 검증, 한글 문장부호 정리
 │   ├── library.ts          # 애셋 JSON → 활동 목록, 도전 낱말
 │   ├── passages.ts         # 글 애셋 검증(라이선스·출처)과 줄바꿈
+│   ├── textLicenseInventory.ts # 연습문 출처·라이선스 문서 생성
 │   └── assets/*.json       # 연습 자료 원본
 ├── storage/
 │   ├── appPreferences.ts   # 언어·완료 효과음·속도 단위 (v2)
@@ -90,9 +91,11 @@ src/
 
 | 필드 | 범위 | 쓰임 |
 | --- | --- | --- |
-| `passage` | 첫 입력 ~ 현재 | 연습 완료 결과의 글 전체 속도 |
-| `bundle` | 현재 5줄 묶음의 첫 입력 ~ 현재 | 묶음이 끝날 때의 묶음 속도 |
+| `passage` | 완료한 줄들의 입력 시간 합 + 현재 줄 | 연습 완료 결과의 글 전체 속도 |
+| `bundle` | 현재 5줄 묶음에서 완료한 줄들의 입력 시간 합 + 현재 줄 | 묶음이 끝날 때의 묶음 속도 |
 | `lastBundle` | 마지막으로 끝난 묶음 | 다음 줄 화면에 "완료한 묶음" 점수로 표시 |
+
+각 줄은 첫 확정 입력부터 제출까지 시간을 재고, 글 전체·묶음 진행은 그 시간을 누적합니다. 줄을 제출한 뒤 다음 줄의 첫 입력 전까지의 전환·적응 시간은 어느 범위에도 넣지 않습니다. 이 규칙이 없으면 같은 텍스트를 한 줄 연습으로 칠 때보다 글 연습의 타수가 낮게 나옵니다.
 
 `endsBundle(nextLineIndex, lineCount)`가 묶음 경계를 단일 규칙으로 정의합니다. 페이지 경계(`5의 배수`)이거나 마지막 줄이면 묶음이 닫힙니다. 완료 효과음도 같은 함수(`submissionEndsBundle`)를 쓰므로 "소리 시점"과 "속도 보고 시점"이 어긋날 수 없습니다.
 
@@ -175,8 +178,9 @@ html[data-practice-language="en"][data-practice-font="serif"] { … }
 - `one-line.{ko,en}.json`, `words.{ko,en}.json`, `challenge-words.json` — `lessons.ts`, `library.ts`가 읽습니다. 빈 문자열과 줄바꿈 포함 항목은 제외합니다.
 - `passages.{ko,en}.json` — `passages.ts`가 읽습니다. `license`가 `original`이 아니면 `credit`(저자·출처·HTTPS URL)이 반드시 있어야 하고, 없으면 그 글을 싣지 않습니다. 이는 CC BY-SA·공공누리 출처 표기 의무를 지키기 위한 코드 수준의 가드입니다.
 - 줄바꿈은 언어별 고정 폭(한국어 24자, 영어 44자)으로 미리 계산해 5줄 묶음 경계가 새로고침·화면 너비에 흔들리지 않게 합니다(`textLayout.ts`).
+- `TEXT-LICENSES.md`는 `textLicenseInventory.ts`가 `activities`·`challengeWords`·`passageActivities`에서 생성합니다. 앱이 실제로 읽는 자료와 출처 표기가 같으므로, 새 자료를 추가하면 `npm run text-licenses:update`로 문서를 갱신합니다. `textLicenseInventory.test.ts`가 문서와 애셋 메타데이터의 일치를 검사합니다.
 
-새 연습 자료를 추가할 때는 애셋만 늘리면 메뉴·기록·글자 수 표시가 따라옵니다. 테스트(`lessons.test.ts` 등)가 길이 기준과 출처 규칙을 검사합니다.
+새 연습 자료를 추가할 때는 애셋만 늘리면 메뉴·기록·글자 수 표시가 따라옵니다. 테스트(`lessons.test.ts` 등)가 길이 기준과 출처 규칙을 검사하고, 라이선스 문서 테스트가 출처 표기 누락과 문서 지연을 막습니다.
 
 ## 테스트 전략
 
